@@ -36,7 +36,6 @@ body{font-family:var(--font);background:var(--bg);color:var(--label);font-size:1
 body[data-device="desktop"]{padding-bottom:0;font-size:14.5px}
 .hidden{display:none!important}
 #app{display:flex;min-height:100vh}
-/* ---------- SIDEBAR (desktop) ---------- */
 aside#sidebar{display:none}
 body[data-device="desktop"] aside#sidebar{
   display:flex;flex-direction:column;gap:2px;width:232px;padding:18px 10px;
@@ -48,7 +47,6 @@ body[data-device="desktop"] aside#sidebar{
 .sideitem .ico{font-size:16px;width:20px;text-align:center}
 .sideitem.active{background:rgba(0,122,255,.16);color:var(--accent);font-weight:600}
 .sidefoot{margin-top:auto;padding:10px 12px;font-size:11px;color:var(--label3)}
-/* ---------- TOOLBAR ---------- */
 header#toolbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;
   padding:10px 16px;background:var(--surface);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
   border-bottom:1px solid var(--sep)}
@@ -69,7 +67,6 @@ header#toolbar h1{font-size:16px;font-weight:700;margin:0;flex:1}
 .btn.on{background:var(--accent);color:#fff}
 .btn.listening{background:var(--red);color:#fff}
 .btn:disabled{opacity:.5}
-/* ---------- NAV BOTTOM (phone/tablet) ---------- */
 nav#bottom{position:fixed;bottom:0;left:0;right:0;z-index:35;display:flex;
   background:var(--surface);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
   border-top:1px solid var(--sep);padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
@@ -78,7 +75,6 @@ nav#bottom button{flex:1;border:0;background:transparent;color:var(--label3);fon
 nav#bottom button .ico{display:block;font-size:22px;margin:0 auto 2px;filter:grayscale(1);opacity:.65}
 nav#bottom button.active{color:var(--accent)}
 nav#bottom button.active .ico{filter:none;opacity:1}
-/* ---------- MAIN ---------- */
 main{flex:1;min-width:0}
 .seg{display:flex;background:var(--fill);border-radius:9px;padding:2px;gap:2px;margin:12px 16px 8px}
 .seg button{flex:1;border:0;background:transparent;border-radius:7px;padding:7px 0;font-size:14px;
@@ -115,7 +111,6 @@ body[data-device="desktop"] tbody tr:hover td{background:rgba(0,122,255,.06)}
 tbody tr:active td{background:rgba(0,122,255,.10)}
 .colres{position:absolute;top:0;right:-6px;width:14px;height:100%;cursor:col-resize;touch-action:none;z-index:6}
 .colres:active{background:rgba(0,122,255,.35)}
-/* ---------- OVERLAYS / SHEETS ---------- */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.32);z-index:60;display:flex;align-items:flex-end;justify-content:center;
   backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
 @media (min-width:700px){.overlay{align-items:center}}
@@ -141,24 +136,20 @@ tbody tr:active td{background:rgba(0,122,255,.10)}
 .pickrow{display:flex;gap:6px}
 .pickrow input{flex:1}
 .estatus{font-size:12px;color:var(--red);margin-top:10px;min-height:16px}
-/* picker */
 #pickerSearch{width:100%;padding:10px 12px;border:0;border-radius:10px;background:var(--fill);color:var(--label);font-size:15px;margin:8px 0 4px;font-family:var(--font);outline:none}
 .pcount{font-size:11px;color:var(--label3);margin:2px 0 6px}
 #pickerList{overflow:auto;max-height:52vh;border:1px solid var(--sep);border-radius:10px;background:var(--solid)}
 .pitem{padding:11px 12px;border-bottom:1px solid var(--sep);font-size:14px;cursor:pointer}
 .pitem:last-child{border-bottom:0}
 .pitem:active{background:rgba(0,122,255,.10)}
-/* toast */
 #toast{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:var(--surface);
   backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--sep);border-radius:14px;
   box-shadow:var(--shadow);padding:10px 16px;font-size:13px;color:var(--label);opacity:0;pointer-events:none;
   transition:.3s;z-index:90;max-width:90%;text-align:center}
 #toast.show{opacity:1}
 @media (min-width:980px){#toast{left:auto;right:16px;transform:none}}
-/* hint */
 .hintbar{display:flex;gap:8px;align-items:center;background:rgba(255,204,0,.18);color:var(--label);padding:8px 16px;font-size:12px}
 .hintbar .btn{padding:6px 10px;font-size:12px}
-/* ---------- SCANNER ---------- */
 .scanbox{padding:12px 16px}
 #readerWrap{position:relative;border-radius:14px;overflow:hidden;background:#000;min-height:240px}
 body[data-device="desktop"] #readerWrap{max-width:640px;margin:0 auto}
@@ -186,7 +177,6 @@ body[data-device="desktop"] #readerWrap{max-width:640px;margin:0 auto}
 .manual{display:flex;gap:8px;margin:10px 0}
 .manual input{flex:1;padding:10px 12px;border:0;border-radius:10px;background:var(--fill);color:var(--label);font-size:15px;font-family:var(--font);outline:none}
 #scanResult .sheet{position:static;max-height:none;border-radius:14px;margin-top:10px;box-shadow:var(--shadow)}
-/* ---------- INVENTORY ---------- */
 .invbox{margin:12px 0 4px;border-top:1px solid var(--sep);padding-top:12px}
 .invhead{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 .invtitle{font-size:14px;font-weight:600}
@@ -208,7 +198,6 @@ body[data-device="desktop"] #readerWrap{max-width:640px;margin:0 auto}
 .invsum{background:var(--solid);border:1px solid var(--sep);border-radius:12px;padding:12px;margin-top:10px;font-size:14px}
 .invsum .cardbtns{margin-top:10px}
 .st-ok{color:var(--green)} .st-bad{color:var(--red)} .st-warn{color:var(--orange)}
-/* ---------- CONTAINER CARD ---------- */
 .cbox{background:rgba(52,199,89,.12);border:1px solid rgba(52,199,89,.35);border-radius:12px;padding:12px;margin:10px 0}
 .cbox .ctitle{font-size:11px;color:var(--green);font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px}
 .cbox .cname{font-size:18px;font-weight:700}
@@ -220,7 +209,6 @@ body[data-device="desktop"] #readerWrap{max-width:640px;margin:0 auto}
 .crow.ghead{background:var(--fill);cursor:default;font-weight:700;font-size:12px;color:var(--label2)}
 .cname2{flex:1;font-size:13px;line-height:1.3}
 .cmeta2{display:block;font-size:11px;margin-top:2px;color:var(--label2)}
-/* ---------- HISTORY ---------- */
 .histwrap{padding:12px 16px}
 .histbtns{display:flex;gap:8px;margin-bottom:10px}
 .hitem{background:var(--solid);border:1px solid var(--sep);border-radius:12px;padding:10px 12px;margin-bottom:8px}
@@ -1494,7 +1482,8 @@ document.getElementById("btnInvFinish").onclick=function(){
         if(!queued){clearInvDraftLocal();serverDeleteDraft();}
         var box=document.getElementById("invSummary");
         box.classList.remove("hidden");
-        box.innerHTML="<b>Инвентаризация "+(queued?"ПОСТАВЛЕНА В ОЧЕРЕДЬ (нет сети)","отправлена":"отправлена")+"</b><br>"+esc(scopeTxt)+
+        var headTxt=queued?"Инвентаризация ПОСТАВЛЕНА В ОЧЕРЕДЬ (нет сети)":"Инвентаризация отправлена";
+        box.innerHTML="<b>"+headTxt+"</b><br>"+esc(scopeTxt)+
           "<br>Всего позиций: "+summ.total+
           "<br>Совпало: <span class='st-ok'>"+summ.ok+"</span>"+
           "<br>Расхождения/не найдены: <span class='st-bad'>"+(summ.total-summ.ok)+"</span>"+
