@@ -1,16 +1,16 @@
 {
-  "name": "СМР Поиск",
-  "short_name": "СМР Поиск",
-  "description": "Поиск по складам СМР и Кладовая, сканер QR-кодов, инвентаризация",
+  "name": "ПБР · СМР Склад — поиск и инвентаризация",
+  "short_name": "ПБР СМР",
+  "description": "Складской помощник ООО «ПБР»: поиск позиций, QR-сканер, инвентаризация склада СМР.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#f5f5f7",
-  "theme_color": "#f5f5f7",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
   "lang": "ru",
   "icons": [
     { "src": "./icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "./icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "./icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
