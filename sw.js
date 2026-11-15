@@ -1,7 +1,8 @@
-const CACHE_NAME = "smr-search-v4";
+const CACHE_NAME = "smr-search-v5";
 const SHELL = [
   "./",
   "./index.html",
+  "./styles.css",
   "./manifest.webmanifest",
   "./icon-192.png",
   "./icon-512.png",
@@ -36,7 +37,6 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET" || url.origin !== location.origin) return;
 
-  // Открытие страницы: сеть не дольше 3 сек, иначе мгновенно из кэша
   if (e.request.mode === "navigate") {
     e.respondWith(
       fetchWithTimeout(e.request, 3000)
@@ -52,7 +52,6 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
-  // Файлы оболочки: кэш сразу, обновление в фоне
   e.respondWith(
     caches.match(e.request).then((cached) => {
       const fetched = fetch(e.request)
