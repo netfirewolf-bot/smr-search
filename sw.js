@@ -1,4 +1,4 @@
-const CACHE_NAME = "smr-search-v5";
+const CACHE_NAME = "smr-search-v6";
 const SHELL = [
   "./",
   "./index.html",
@@ -6,6 +6,7 @@ const SHELL = [
   "./manifest.webmanifest",
   "./icon-192.png",
   "./icon-512.png",
+  "./icon-maskable-512.png",
   "./html5-qrcode.min.js"
 ];
 
