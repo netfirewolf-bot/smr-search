@@ -1,0 +1,1703 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f5f5f7">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>СМР Поиск</title>
+<script src="html5-qrcode.min.js"></script>
+<style>
+:root{
+  --bg:#f5f5f7; --surface:rgba(255,255,255,.78); --solid:#ffffff;
+  --label:#1d1d1f; --label2:#6e6e73; --label3:#86868b;
+  --sep:rgba(60,60,67,.14); --fill:rgba(118,118,128,.12);
+  --accent:#007aff; --green:#34c759; --red:#ff3b30; --orange:#ff9500;
+  --radius:12px; --shadow:0 10px 30px rgba(0,0,0,.14);
+  --blur:saturate(180%) blur(20px);
+  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#1c1c1e; --surface:rgba(44,44,46,.78); --solid:#2c2c2e;
+    --label:#f5f5f7; --label2:#98989d; --label3:#86868b;
+    --sep:rgba(255,255,255,.12); --fill:rgba(118,118,128,.26);
+    --accent:#0a84ff; --green:#30d158; --red:#ff453a; --orange:#ff9f0a;
+    --shadow:0 10px 30px rgba(0,0,0,.55);
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{font-family:var(--font);background:var(--bg);color:var(--label);font-size:15px;padding-bottom:70px}
+body[data-device="desktop"]{padding-bottom:0;font-size:14.5px}
+.hidden{display:none!important}
+#app{display:flex;min-height:100vh}
+/* ---------- SIDEBAR (desktop) ---------- */
+aside#sidebar{display:none}
+body[data-device="desktop"] aside#sidebar{
+  display:flex;flex-direction:column;gap:2px;width:232px;padding:18px 10px;
+  position:sticky;top:0;height:100vh;background:var(--surface);
+  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border-right:1px solid var(--sep)}
+.sidetitle{font-size:15px;font-weight:700;padding:4px 12px 14px;color:var(--label)}
+.sideitem{display:flex;gap:10px;align-items:center;padding:8px 12px;border-radius:8px;border:0;
+  background:transparent;color:var(--label2);font-size:14px;cursor:pointer;width:100%;text-align:left;font-family:var(--font)}
+.sideitem .ico{font-size:16px;width:20px;text-align:center}
+.sideitem.active{background:rgba(0,122,255,.16);color:var(--accent);font-weight:600}
+.sidefoot{margin-top:auto;padding:10px 12px;font-size:11px;color:var(--label3)}
+/* ---------- TOOLBAR ---------- */
+header#toolbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;
+  padding:10px 16px;background:var(--surface);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border-bottom:1px solid var(--sep)}
+.lights{display:none;gap:8px;margin-right:4px}
+.lights i{width:12px;height:12px;border-radius:50%}
+.lights .r{background:#ff5f57}.lights .y{background:#febc2e}.lights .g{background:#28c840}
+body[data-device="desktop"] .lights{display:flex}
+header#toolbar h1{font-size:16px;font-weight:700;margin:0;flex:1}
+.badge{font-size:11px;background:var(--fill);padding:4px 10px;border-radius:999px;color:var(--label2);
+  max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn{border:0;border-radius:10px;padding:9px 14px;font-size:14px;cursor:pointer;background:var(--fill);
+  color:var(--label);font-family:var(--font)}
+.btn.primary{background:var(--accent);color:#fff}
+.btn.good{background:var(--green);color:#fff}
+.btn.warn{background:var(--orange);color:#fff}
+.btn.destructive{background:var(--red);color:#fff}
+.btn.icon{padding:6px 10px;border-radius:8px;font-size:16px}
+.btn.on{background:var(--accent);color:#fff}
+.btn.listening{background:var(--red);color:#fff}
+.btn:disabled{opacity:.5}
+/* ---------- NAV BOTTOM (phone/tablet) ---------- */
+nav#bottom{position:fixed;bottom:0;left:0;right:0;z-index:35;display:flex;
+  background:var(--surface);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border-top:1px solid var(--sep);padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+body[data-device="desktop"] nav#bottom{display:none}
+nav#bottom button{flex:1;border:0;background:transparent;color:var(--label3);font-size:11px;padding:4px 0;cursor:pointer;font-family:var(--font)}
+nav#bottom button .ico{display:block;font-size:22px;margin:0 auto 2px;filter:grayscale(1);opacity:.65}
+nav#bottom button.active{color:var(--accent)}
+nav#bottom button.active .ico{filter:none;opacity:1}
+/* ---------- MAIN ---------- */
+main{flex:1;min-width:0}
+.seg{display:flex;background:var(--fill);border-radius:9px;padding:2px;gap:2px;margin:12px 16px 8px}
+.seg button{flex:1;border:0;background:transparent;border-radius:7px;padding:7px 0;font-size:14px;
+  color:var(--label);cursor:pointer;font-family:var(--font)}
+.seg button.active{background:var(--solid);box-shadow:0 1px 4px rgba(0,0,0,.14);font-weight:600}
+.searchwrap{position:relative;margin:0 16px 8px}
+.searchwrap .sicon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--label3);font-size:14px;pointer-events:none}
+#q{width:100%;padding:9px 12px 9px 32px;font-size:16px;border:0;border-radius:10px;background:var(--fill);
+  color:var(--label);font-family:var(--font);outline:none}
+body[data-device="desktop"] #q{font-size:14px}
+#q:focus{box-shadow:0 0 0 3px rgba(0,122,255,.35);background:var(--solid)}
+#suggest{position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--solid);border:1px solid var(--sep);
+  border-radius:12px;box-shadow:var(--shadow);max-height:55vh;overflow:auto;z-index:40;display:none}
+#suggest .sitem{padding:10px 12px;border-bottom:1px solid var(--sep);cursor:pointer}
+#suggest .sitem:last-child{border-bottom:0}
+#suggest .sname{font-size:14px}
+#suggest .smeta{font-size:12px;color:var(--label2);margin-top:2px}
+mark{background:rgba(255,204,0,.45);border-radius:3px;padding:0 1px}
+#chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 8px}
+.chip{border:0;border-radius:999px;padding:7px 12px;font-size:13px;background:var(--fill);color:var(--label);cursor:pointer;font-family:var(--font)}
+.chip.on{background:rgba(0,122,255,.16);color:var(--accent);font-weight:600}
+#summary{padding:0 16px 2px;font-size:13px;color:var(--label2)}
+#colhint{padding:0 16px 6px;font-size:11px;color:var(--label3)}
+.tablewrap{overflow:auto;margin:0 16px 16px;background:var(--solid);border:1px solid var(--sep);
+  border-radius:12px;max-height:56vh}
+body[data-device="desktop"] .tablewrap{max-height:calc(100vh - 260px)}
+table{border-collapse:separate;border-spacing:0;width:100%;table-layout:fixed;font-size:13px}
+thead th{position:sticky;top:0;background:var(--solid);color:var(--label2);font-size:11px;
+  text-transform:uppercase;letter-spacing:.03em;padding:8px 10px;text-align:left;border-bottom:1px solid var(--sep);
+  cursor:pointer;user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:2}
+tbody td{padding:8px 10px;border-bottom:1px solid var(--sep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+tbody tr:last-child td{border-bottom:0}
+body[data-device="desktop"] tbody tr:hover td{background:rgba(0,122,255,.06)}
+tbody tr:active td{background:rgba(0,122,255,.10)}
+.colres{position:absolute;top:0;right:-6px;width:14px;height:100%;cursor:col-resize;touch-action:none;z-index:6}
+.colres:active{background:rgba(0,122,255,.35)}
+/* ---------- OVERLAYS / SHEETS ---------- */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.32);z-index:60;display:flex;align-items:flex-end;justify-content:center;
+  backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
+@media (min-width:700px){.overlay{align-items:center}}
+.sheet{background:var(--solid);width:100%;border-radius:18px 18px 0 0;padding:18px 18px calc(22px + env(safe-area-inset-bottom));
+  max-height:86vh;overflow:auto;position:relative;box-shadow:var(--shadow)}
+@media (min-width:700px){.sheet{border-radius:14px;max-width:560px}}
+.closebtn{position:absolute;top:12px;right:12px;border:0;background:var(--fill);color:var(--label2);
+  border-radius:8px;font-size:14px;padding:6px 10px;cursor:pointer}
+.sheet h2{font-size:16px;margin:0 40px 10px 0;line-height:1.35}
+.groupbox{background:var(--fill);border-radius:10px;padding:10px 12px;margin:10px 0}
+.groupbox .gtitle{font-size:11px;color:var(--label2);font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px}
+.groupbox .gval{font-size:17px;font-weight:700;color:var(--label)}
+.kv{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--sep);font-size:14px}
+.kv:last-of-type{border-bottom:0}
+.kv .k{color:var(--label2);flex:0 0 45%}
+.kv .v{flex:1;font-weight:600;white-space:normal}
+.diffbad{color:var(--red)} .diffgood{color:var(--green)}
+.cardbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.cardbtns .btn{flex:1;min-width:120px;padding:11px 0}
+.elabel{font-size:12px;color:var(--label2);margin:10px 0 4px}
+.field input{width:100%;padding:10px 12px;border:0;border-radius:10px;background:var(--fill);color:var(--label);font-size:16px;font-family:var(--font);outline:none}
+.field input:focus{box-shadow:0 0 0 3px rgba(0,122,255,.35);background:var(--solid)}
+.pickrow{display:flex;gap:6px}
+.pickrow input{flex:1}
+.estatus{font-size:12px;color:var(--red);margin-top:10px;min-height:16px}
+/* picker */
+#pickerSearch{width:100%;padding:10px 12px;border:0;border-radius:10px;background:var(--fill);color:var(--label);font-size:15px;margin:8px 0 4px;font-family:var(--font);outline:none}
+.pcount{font-size:11px;color:var(--label3);margin:2px 0 6px}
+#pickerList{overflow:auto;max-height:52vh;border:1px solid var(--sep);border-radius:10px;background:var(--solid)}
+.pitem{padding:11px 12px;border-bottom:1px solid var(--sep);font-size:14px;cursor:pointer}
+.pitem:last-child{border-bottom:0}
+.pitem:active{background:rgba(0,122,255,.10)}
+/* toast */
+#toast{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:var(--surface);
+  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--sep);border-radius:14px;
+  box-shadow:var(--shadow);padding:10px 16px;font-size:13px;color:var(--label);opacity:0;pointer-events:none;
+  transition:.3s;z-index:90;max-width:90%;text-align:center}
+#toast.show{opacity:1}
+@media (min-width:980px){#toast{left:auto;right:16px;transform:none}}
+/* hint */
+.hintbar{display:flex;gap:8px;align-items:center;background:rgba(255,204,0,.18);color:var(--label);padding:8px 16px;font-size:12px}
+.hintbar .btn{padding:6px 10px;font-size:12px}
+/* ---------- SCANNER ---------- */
+.scanbox{padding:12px 16px}
+#readerWrap{position:relative;border-radius:14px;overflow:hidden;background:#000;min-height:240px}
+body[data-device="desktop"] #readerWrap{max-width:640px;margin:0 auto}
+#reader{width:100%}
+#scanFrame{position:absolute;left:8%;right:8%;top:16%;bottom:16%;pointer-events:none;border:2px dashed rgba(255,255,255,.7);border-radius:14px}
+#scanFlash{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .35s}
+#scanFlash.ok{background:rgba(48,209,88,.4);opacity:1}
+#scanFlash.bad{background:rgba(255,69,58,.4);opacity:1}
+#scanStats{font-size:12px;color:var(--label2);margin:8px 2px}
+#sessionTitle{font-size:12px;font-weight:700;color:var(--label2);margin:8px 2px 4px}
+#sessionList{margin:0 0 8px}
+.schip{display:flex;gap:8px;align-items:center;background:var(--solid);border:1px solid var(--sep);border-radius:10px;
+  padding:8px 10px;margin-bottom:6px;font-size:13px;cursor:pointer}
+.schip .st{color:var(--label3);font-size:11px;flex-shrink:0}
+.schip .sn{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.schip.notfound .sn{color:var(--red)}
+.schip.empty{cursor:default;background:transparent;border-color:transparent}
+.schip.empty .sn{color:var(--label3)}
+#scanControls{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
+#zoomWrap{width:100%;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--label2);margin:6px 0}
+#zoom{flex:1}
+.zpreset{border:0;border-radius:8px;background:var(--fill);color:var(--label);padding:8px 10px;font-size:12px;cursor:pointer}
+.zpreset.on{background:var(--accent);color:#fff}
+#scanStatus{font-size:13px;color:var(--label2);margin:6px 0}
+.manual{display:flex;gap:8px;margin:10px 0}
+.manual input{flex:1;padding:10px 12px;border:0;border-radius:10px;background:var(--fill);color:var(--label);font-size:15px;font-family:var(--font);outline:none}
+#scanResult .sheet{position:static;max-height:none;border-radius:14px;margin-top:10px;box-shadow:var(--shadow)}
+/* ---------- INVENTORY ---------- */
+.invbox{margin:12px 0 4px;border-top:1px solid var(--sep);padding-top:12px}
+.invhead{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.invtitle{font-size:14px;font-weight:600}
+.switch{position:relative;width:51px;height:31px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.switch .sl{position:absolute;inset:0;background:var(--fill);border-radius:16px;transition:.25s;cursor:pointer}
+.switch .sl:before{content:"";position:absolute;width:27px;height:27px;left:2px;top:2px;background:#fff;border-radius:50%;
+  box-shadow:0 2px 6px rgba(0,0,0,.25);transition:.25s}
+.switch input:checked + .sl{background:var(--green)}
+.switch input:checked + .sl:before{transform:translateX(20px)}
+.invlabel{font-size:12px;color:var(--label2);margin:8px 0}
+.invlist{max-height:40vh;overflow:auto;background:var(--solid);border:1px solid var(--sep);border-radius:10px}
+.invrow{display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--sep)}
+.invrow:last-child{border-bottom:0}
+.invname{flex:1;font-size:13px;line-height:1.3}
+.invmeta{display:block;font-size:11px;margin-top:2px;color:var(--label2)}
+.invnum{width:84px;padding:8px;border:0;border-radius:8px;background:var(--fill);color:var(--label);font-size:14px;font-family:var(--font);outline:none}
+.invdel{border:0;background:rgba(255,59,48,.14);color:var(--red);border-radius:8px;padding:8px 10px;cursor:pointer}
+.invsum{background:var(--solid);border:1px solid var(--sep);border-radius:12px;padding:12px;margin-top:10px;font-size:14px}
+.invsum .cardbtns{margin-top:10px}
+.st-ok{color:var(--green)} .st-bad{color:var(--red)} .st-warn{color:var(--orange)}
+/* ---------- CONTAINER CARD ---------- */
+.cbox{background:rgba(52,199,89,.12);border:1px solid rgba(52,199,89,.35);border-radius:12px;padding:12px;margin:10px 0}
+.cbox .ctitle{font-size:11px;color:var(--green);font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px}
+.cbox .cname{font-size:18px;font-weight:700}
+.cbox .cmeta{font-size:12px;color:var(--label2);margin-top:4px}
+.clist{background:var(--solid);border:1px solid var(--sep);border-radius:10px;max-height:40vh;overflow:auto;margin-top:10px}
+.crow{display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--sep);cursor:pointer}
+.crow:last-child{border-bottom:0}
+.crow.item:active{background:rgba(0,122,255,.10)}
+.crow.ghead{background:var(--fill);cursor:default;font-weight:700;font-size:12px;color:var(--label2)}
+.cname2{flex:1;font-size:13px;line-height:1.3}
+.cmeta2{display:block;font-size:11px;margin-top:2px;color:var(--label2)}
+/* ---------- HISTORY ---------- */
+.histwrap{padding:12px 16px}
+.histbtns{display:flex;gap:8px;margin-bottom:10px}
+.hitem{background:var(--solid);border:1px solid var(--sep);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.hitem .ht{font-size:11px;color:var(--label3)}
+.hitem .hn{font-size:14px;font-weight:600;margin-top:2px}
+.hitem .hc{font-size:12px;color:var(--label2);margin-top:2px}
+.hitem.notfound .hn{color:var(--red)}
+</style>
+</head>
+<body data-device="phone">
+<div id="app">
+<aside id="sidebar">
+  <div class="sidetitle">СМР Поиск</div>
+  <button class="sideitem active" data-view="search"><span class="ico">&#128269;</span>Поиск</button>
+  <button class="sideitem" data-view="scan"><span class="ico">&#128247;</span>Сканер</button>
+  <button class="sideitem" data-view="history"><span class="ico">&#128203;</span>История</button>
+  <div class="sidefoot" id="sideBadge"></div>
+</aside>
+<main>
+<header id="toolbar">
+  <span class="lights"><i class="r"></i><i class="y"></i><i class="g"></i></span>
+  <h1>СМР Поиск</h1>
+  <div id="syncBadge" class="badge">загрузка...</div>
+  <button id="installBtn" class="btn icon hidden" title="Установить приложение">&#128242;</button>
+  <button id="refreshBtn" class="btn icon" title="Обновить данные">&#10227;</button>
+</header>
+<div id="installHint" class="hintbar hidden"><span>Установите как приложение: меню браузера &#8942; → «Установить приложение»</span><button id="hintOk" class="btn">Понятно</button></div>
+
+<section id="view-search">
+  <nav id="tabs" class="seg"></nav>
+  <div class="searchwrap">
+    <span class="sicon">&#128269;</span>
+    <input id="q" type="search" placeholder="Поиск: название или бух. номер" autocomplete="off" enterkeyhint="search">
+    <div id="suggest"></div>
+  </div>
+  <div id="chips"></div>
+  <div id="summary"></div>
+  <div id="colhint">Ширина столбцов: тяните правый край заголовка; двойной клик/тап — сброс</div>
+  <div class="tablewrap">
+    <table id="tbl"><thead></thead><tbody></tbody></table>
+  </div>
+</section>
+
+<section id="view-scan" class="hidden">
+  <div class="scanbox">
+    <div id="readerWrap">
+      <div id="reader"></div>
+      <div id="scanFrame"></div>
+      <div id="scanFlash"></div>
+    </div>
+    <div id="scanStats">Сканирований: <b id="scanCount">0</b> · найдено: <b id="scanFound">0</b></div>
+    <div id="sessionTitle" class="hidden">Последние сканы сессии</div>
+    <div id="sessionList"></div>
+    <div id="scanControls">
+      <button id="btnStart" class="btn primary">Включить камеру</button>
+      <button id="btnStop" class="btn hidden">Стоп</button>
+      <button id="btnTorch" class="btn hidden">Вспышка</button>
+      <button id="btnFlip" class="btn hidden">Смена камеры</button>
+      <button id="btnSound" class="btn">Звук: вкл</button>
+    </div>
+    <div id="zoomWrap" class="hidden">
+      <button class="zpreset" data-z="1">1x</button>
+      <button class="zpreset" data-z="2">2x</button>
+      <button class="zpreset" data-z="4">4x</button>
+      <input type="range" id="zoom" min="1" max="8" step="0.1" value="1">
+    </div>
+    <div id="scanStatus">Камера выключена</div>
+    <div class="manual">
+      <input id="manualCode" placeholder="Ввести код вручную (например 00-00081586)">
+      <button id="btnManual" class="btn">Найти</button>
+    </div>
+
+    <div class="invbox">
+      <div class="invhead">
+        <label class="switch"><input type="checkbox" id="invSwitch"><span class="sl"></span></label>
+        <span class="invtitle">Инвентаризация</span>
+        <button id="btnInvPlace" class="btn hidden">&#9662; Контейнер</button>
+        <button id="btnInvShelf" class="btn hidden">&#9662; Полка: вся</button>
+        <button id="btnInvZero" class="btn hidden">Нули: показывать</button>
+        <button id="btnInvVoice" class="btn hidden">&#127908; Голос</button>
+        <button id="btnInvPause" class="btn hidden">Пауза</button>
+        <button id="btnInvFinish" class="btn warn hidden">Завершить</button>
+      </div>
+      <div id="invPlaceLabel" class="invlabel hidden">Контейнер: не выбран</div>
+      <div id="invStats" class="invlabel hidden"></div>
+      <div id="invList" class="invlist hidden"></div>
+      <div id="invSummary" class="invsum hidden"></div>
+    </div>
+
+    <div id="scanResult"></div>
+  </div>
+</section>
+
+<section id="view-history" class="hidden">
+  <div class="histwrap">
+    <div class="histbtns">
+      <button id="btnHistClear" class="btn">Очистить</button>
+      <button id="btnHistCsv" class="btn">Экспорт CSV</button>
+    </div>
+    <div id="histList"></div>
+  </div>
+</section>
+</main>
+</div>
+
+<nav id="bottom">
+  <button id="navSearch" class="active"><span class="ico">&#128269;</span>Поиск</button>
+  <button id="navScan"><span class="ico">&#128247;</span>Сканер</button>
+  <button id="navHist"><span class="ico">&#128203;</span>История</button>
+</nav>
+
+<div id="cardOverlay" class="overlay hidden">
+  <div class="sheet">
+    <button class="closebtn" id="cardClose">&#10005;</button>
+    <div id="cardBody"></div>
+  </div>
+</div>
+
+<div id="editOverlay" class="overlay hidden">
+  <div class="sheet">
+    <button class="closebtn" id="editClose">&#10005;</button>
+    <h2 id="editTitle">Изменить позицию</h2>
+    <div class="elabel">Факт (число)</div>
+    <div class="field"><input id="editFact" type="number" step="any" inputmode="decimal" placeholder="оставьте пустым, чтобы не менять"></div>
+    <div class="elabel">Контейнер / площадка</div>
+    <div class="pickrow field">
+      <input id="editPlace" type="text" maxlength="100" autocomplete="off">
+      <button id="btnPickPlace" class="btn" type="button">&#9662; Список</button>
+    </div>
+    <div class="elabel">Полка / место</div>
+    <div class="pickrow field">
+      <input id="editShelf" type="text" maxlength="100" autocomplete="off">
+      <button id="btnPickShelf" class="btn" type="button">&#9662; Список</button>
+    </div>
+    <div class="cardbtns">
+      <button id="editSave" class="btn warn">Сохранить</button>
+      <button id="editCancel" class="btn">Отмена</button>
+    </div>
+    <div id="editStatus" class="estatus"></div>
+  </div>
+</div>
+
+<div id="pickerOverlay" class="overlay hidden">
+  <div class="sheet">
+    <button class="closebtn" id="pickerClose">&#10005;</button>
+    <h2 id="pickerTitle">Выбор значения</h2>
+    <input id="pickerSearch" type="search" placeholder="Фильтр по списку..." autocomplete="off">
+    <div id="pickerCount" class="pcount"></div>
+    <div id="pickerList"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+"use strict";
+/* ========== API (Google Apps Script) ========== */
+var API_BASE="https://script.google.com/macros/s/AKfycbw6OWtl-3aLFgQtb7pAQ3DNL0BgpXsRUsxhjTX3mNgK6smxgMLbNROymNFQrwjD454tLg/exec";
+var API_TOKEN="smr-K7m2Qx9Zp4";
+function apiGet(action,params){
+  var u=API_BASE+"?action="+encodeURIComponent(action)+"&token="+encodeURIComponent(API_TOKEN);
+  if(params)Object.keys(params).forEach(function(k){if(params[k])u+="&"+k+"="+encodeURIComponent(params[k]);});
+  return fetch(u);
+}
+function apiPost(action,payload){
+  var body=Object.assign({action:action,token:API_TOKEN},payload||{});
+  return fetch(API_BASE,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(body)});
+}
+var LS_PENDING="smr_pending_v1";
+function pendingGet(){try{return JSON.parse(localStorage.getItem(LS_PENDING)||"[]");}catch(e){return [];}}
+function pendingPush(item){var q=pendingGet();q.push(item);if(q.length>200)q=q.slice(-200);localStorage.setItem(LS_PENDING,JSON.stringify(q));}
+var lastQueueToast=0;
+function toastQueued(){var n=Date.now();if(n-lastQueueToast>4000){lastQueueToast=n;toast("Нет связи с сервером: действие поставлено в очередь");}}
+function pendingFlush(){
+  var q=pendingGet();if(!q.length)return;
+  (async function(){
+    var rest=[];
+    for(var i=0;i<q.length;i++){
+      try{var r=await apiPost(q[i].action,q[i].payload);var j=await r.json();if(!j||!j.ok)throw 0;}
+      catch(e){rest.push(q[i]);}
+    }
+    localStorage.setItem(LS_PENDING,JSON.stringify(rest));
+    if(q.length-rest.length)toast("Отправлено отложенных действий: "+(q.length-rest.length));
+  })();
+}
+async function apiPostSafe(action,payload){
+  try{
+    var r=await apiPost(action,payload);
+    var j=await r.json();
+    if(j&&j.ok)return {ok:true,queued:false,res:j};
+    throw new Error((j&&j.error)||"server error");
+  }catch(e){
+    pendingPush({action:action,payload:payload});
+    toastQueued();
+    return {ok:true,queued:true};
+  }
+}
+
+/* ========== STATE ========== */
+var DATA=null, curSheet=null, sortState={col:-1,dir:1}, viewList=[];
+var filters={diff:false,ost:false,fact:false,place:false};
+var IDX_BY_SHEET={};
+var LS_KEY="smr_snapshot_v1", LS_SCANS="smr_scans_v1", LS_DEVICE="smr_device_id", COLW_KEY="smr_colw_v1";
+var LS_INVDRAFT="smr_inv_draft", LS_INVZERO="smr_inv_hidezero";
+var CHIP_DEFS=[
+  {key:"diff",label:"Разница ≠ 0",idx:"diff"},
+  {key:"ost",label:"Остаток = 0",idx:"ost"},
+  {key:"fact",label:"Факт = 0",idx:"fact"},
+  {key:"place",label:"Есть место хранения",idx:"place"}
+];
+
+/* ========== DEVICE ========== */
+function detectDevice(){
+  var touch=("ontouchstart" in window)||navigator.maxTouchPoints>0;
+  var w=window.innerWidth;
+  if(touch&&w<760)return "phone";
+  if(touch&&w<1180)return "tablet";
+  return "desktop";
+}
+function applyDevice(){document.body.dataset.device=detectDevice();}
+window.addEventListener("resize",applyDevice);
+applyDevice();
+
+/* ========== PWA ========== */
+if("serviceWorker" in navigator && window.isSecureContext){
+  window.addEventListener("load",function(){
+    navigator.serviceWorker.register("sw.js").catch(function(){});
+  });
+}
+var deferredPrompt=null;
+window.addEventListener("beforeinstallprompt",function(e){
+  e.preventDefault();
+  deferredPrompt=e;
+  document.getElementById("installBtn").classList.remove("hidden");
+  if(!localStorage.getItem("smr_hint_dismissed"))document.getElementById("installHint").classList.remove("hidden");
+});
+document.getElementById("installBtn").onclick=async function(){
+  if(!deferredPrompt)return;
+  deferredPrompt.prompt();
+  try{await deferredPrompt.userChoice;}catch(e){}
+  deferredPrompt=null;
+  this.classList.add("hidden");
+  document.getElementById("installHint").classList.add("hidden");
+};
+document.getElementById("hintOk").onclick=function(){
+  localStorage.setItem("smr_hint_dismissed","1");
+  document.getElementById("installHint").classList.add("hidden");
+};
+
+/* ========== UTILS ========== */
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c];});}
+function normText(s){return String(s==null?"":s).toLowerCase().replace(/ё/g,"е").trim();}
+function normBuh(s){var d=String(s==null?"":s).replace(/\D/g,"");return d.replace(/^0+/,"");}
+function toNum(v){if(typeof v==="number")return v;var s=String(v==null?"":v).trim().replace(",",".");if(s===""||!/^-?\d+(\.\d+)?$/.test(s))return null;return parseFloat(s);}
+function hl(text,q){var t=esc(text);if(!q)return t;var i=t.toLowerCase().indexOf(q.toLowerCase());if(i<0)return t;return t.slice(0,i)+"<mark>"+t.slice(i,i+q.length)+"</mark>"+t.slice(i+q.length);}
+function deviceId(){var d=localStorage.getItem(LS_DEVICE);if(!d){d="dev-"+Math.random().toString(36).slice(2,10);localStorage.setItem(LS_DEVICE,d);}return d;}
+function toast(t){
+  var el=document.getElementById("toast");
+  el.textContent=t;el.classList.add("show");
+  setTimeout(function(){el.classList.remove("show");},2600);
+}
+function ruCmp(a,b){return normText(a).localeCompare(normText(b),"ru");}
+
+/* ========== TABLE WIDTHS ========== */
+function colWidthsFor(sheetName){
+  try{var all=JSON.parse(localStorage.getItem(COLW_KEY)||"{}");return all[sheetName]||{};}catch(e){return {};}
+}
+function saveColWidth(sheetName,header,px){
+  try{
+    var all=JSON.parse(localStorage.getItem(COLW_KEY)||"{}");
+    if(!all[sheetName])all[sheetName]={};
+    all[sheetName][header]=px;
+    localStorage.setItem(COLW_KEY,JSON.stringify(all));
+  }catch(e){}
+}
+function defaultColWidth(sheetName,i,header){
+  var ix=IDX_BY_SHEET[sheetName]||{name:0};
+  var n=normText(header);
+  if(i===ix.name)return 300;
+  if(n.indexOf("бух")>=0)return 90;
+  if(n.indexOf("ед")>=0)return 70;
+  if(n.indexOf("остаток")>=0||n.indexOf("факт")>=0||n.indexOf("разниц")>=0)return 100;
+  if(n.indexOf("примечан")>=0)return 200;
+  return 140;
+}
+function recalcTableWidth(){
+  var tbl=document.getElementById("tbl");
+  var ths=tbl.querySelectorAll("thead th");
+  var total=0;
+  ths.forEach(function(th){total+=th.offsetWidth;});
+  tbl.style.width=total+"px";
+  tbl.style.minWidth="100%";
+}
+function attachResizer(th,sheetName,header,colIndex){
+  var h=document.createElement("div");
+  h.className="colres";
+  th.appendChild(h);
+  h.addEventListener("click",function(e){e.stopPropagation();});
+  h.addEventListener("dblclick",function(e){
+    e.stopPropagation();
+    var w=defaultColWidth(sheetName,colIndex,header);
+    th.style.width=w+"px";
+    recalcTableWidth();
+    saveColWidth(sheetName,header,th.offsetWidth);
+  });
+  h.addEventListener("pointerdown",function(e){
+    e.preventDefault();e.stopPropagation();
+    try{h.setPointerCapture(e.pointerId);}catch(err){}
+    var startX=e.clientX,startW=th.offsetWidth;
+    function mv(ev){
+      var w=Math.max(60,startW+(ev.clientX-startX));
+      th.style.width=w+"px";
+      recalcTableWidth();
+    }
+    function up(){
+      h.removeEventListener("pointermove",mv);
+      h.removeEventListener("pointerup",up);
+      h.removeEventListener("pointercancel",up);
+      saveColWidth(sheetName,header,th.offsetWidth);
+    }
+    h.addEventListener("pointermove",mv);
+    h.addEventListener("pointerup",up);
+    h.addEventListener("pointercancel",up);
+  });
+}
+
+/* ========== SEARCH CORE ========== */
+function sheet(){return DATA.sheets[curSheet];}
+function IX(){return IDX_BY_SHEET[curSheet];}
+function computeAllIdx(){
+  IDX_BY_SHEET={};
+  Object.keys(DATA.sheets).forEach(function(name){
+    var h=DATA.sheets[name].headers;
+    var o={name:-1,buh:-1,diff:-1,ost:-1,fact:-1,place:-1,shelf:-1};
+    for(var i=0;i<h.length;i++){var n=normText(h[i]);
+      if(o.name<0&&n.indexOf("наимен")>=0)o.name=i;
+      if(o.buh<0&&n.indexOf("бух")>=0)o.buh=i;
+      if(o.diff<0&&n.indexOf("разниц")>=0)o.diff=i;
+      if(o.ost<0&&n.indexOf("остаток")>=0)o.ost=i;
+      if(o.fact<0&&n.indexOf("факт")>=0)o.fact=i;
+      if(o.place<0&&(n.indexOf("контейнер")>=0||n.indexOf("площадк")>=0))o.place=i;
+      if(o.shelf<0&&n.indexOf("полка")>=0)o.shelf=i;
+    }
+    if(o.name<0)o.name=0;
+    IDX_BY_SHEET[name]=o;
+  });
+}
+function passFilters(row){
+  var ix=IX();
+  if(filters.diff&&ix.diff>=0){var v=toNum(row[ix.diff]);if(v==null||v===0)return false;}
+  if(filters.ost&&ix.ost>=0){var o=toNum(row[ix.ost]);if(o==null||o!==0)return false;}
+  if(filters.fact&&ix.fact>=0){var f=toNum(row[ix.fact]);if(f==null||f!==0)return false;}
+  if(filters.place&&ix.place>=0){if(!String(row[ix.place]==null?"":row[ix.place]).trim())return false;}
+  return true;
+}
+function matches(row,nq,qb){
+  var ix=IX();
+  if(nq&&normText(row[ix.name]).indexOf(nq)>=0)return true;
+  if(ix.buh>=0){
+    if(nq&&normText(row[ix.buh]).indexOf(nq)>=0)return true;
+    if(qb){var bn=normBuh(row[ix.buh]);if(bn&&bn.indexOf(qb)>=0)return true;}
+  }
+  return false;
+}
+function rank(row,nq,qb){
+  var ix=IX();
+  if(qb&&ix.buh>=0&&normBuh(row[ix.buh])===qb)return 0;
+  var name=normText(row[ix.name]);
+  if(nq&&name.indexOf(nq)===0)return 1;
+  if(nq&&name.indexOf(nq)>=0)return 2;
+  return 3;
+}
+function colType(i){
+  var rows=sheet().rows,num=0,dat=0,tot=0;
+  for(var k=0;k<rows.length&&tot<200;k++){var v=rows[k][i];if(v===""||v==null)continue;tot++;
+    var s=String(v).trim();
+    if(/^-?\d+([.,]\d+)?$/.test(s))num++;
+    else if(/^\d{2}\.\d{2}\.\d{4}(\s\d{1,2}:\d{2}(:\d{2})?)?$/.test(s))dat++;
+  }
+  if(tot===0)return "str";
+  if(num/tot>0.9)return "num";
+  if(dat/tot>0.9)return "date";
+  return "str";
+}
+function cmpVals(a,b,type){
+  var ae=(a===""||a==null),be=(b===""||b==null);
+  if(ae&&be)return 0;if(ae)return 1;if(be)return -1;
+  if(type==="num"){var x=toNum(a),y=toNum(b);if(x==null)x=0;if(y==null)y=0;return x-y;}
+  if(type==="date")return parseDateSafe(a)-parseDateSafe(b);
+  return ruCmp(a,b);
+}
+function parseDateSafe(s){var m=String(s).trim().match(/^(\d{2})\.(\d{2})\.(\d{4})(?:\s(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/);if(!m)return 0;return new Date(+m[3],+m[2]-1,+m[1],+(m[4]||0),+(m[5]||0),+(m[6]||0)).getTime();}
+function buildView(){
+  var q=document.getElementById("q").value.trim();
+  var nq=normText(q),qb=normBuh(q);
+  var rows=sheet().rows,out=[];
+  for(var i=0;i<rows.length;i++){
+    var r=rows[i];
+    if(!passFilters(r))continue;
+    if(q&&!matches(r,nq,qb))continue;
+    out.push({row:r,rowIdx:i,rank:q?rank(r,nq,qb):0});
+  }
+  if(q)out.sort(function(a,b){return a.rank-b.rank;});
+  if(sortState.col>=0){
+    var type=colType(sortState.col),dir=sortState.dir,c=sortState.col;
+    out.sort(function(a,b){return dir*cmpVals(a.row[c],b.row[c],type);});
+  }
+  return out;
+}
+function renderTabs(){
+  var nav=document.getElementById("tabs");nav.innerHTML="";
+  Object.keys(DATA.sheets).forEach(function(name){
+    var b=document.createElement("button");
+    b.textContent=name;
+    if(name===curSheet)b.className="active";
+    b.onclick=function(){curSheet=name;sortState={col:-1,dir:1};renderTabs();renderChips();renderTable();hideSuggest();};
+    nav.appendChild(b);
+  });
+}
+function renderChips(){
+  var box=document.getElementById("chips");box.innerHTML="";
+  var ix=IX();
+  CHIP_DEFS.forEach(function(def){
+    if(ix[def.idx]<0)return;
+    var c=document.createElement("button");
+    c.className="chip"+(filters[def.key]?" on":"");
+    c.textContent=def.label;
+    c.onclick=function(){filters[def.key]=!filters[def.key];renderChips();renderTable();};
+    box.appendChild(c);
+  });
+}
+function renderTable(){
+  var s=sheet();
+  viewList=buildView();
+  var stored=colWidthsFor(curSheet);
+  var thead=document.querySelector("#tbl thead");
+  thead.innerHTML="";
+  var tr=document.createElement("tr");
+  s.headers.forEach(function(h,i){
+    var th=document.createElement("th");
+    var arrow=(sortState.col===i)?(sortState.dir>0?" ▲":" ▼"):"";
+    th.innerHTML=esc(h)+arrow;
+    th.style.width=(stored[h]||defaultColWidth(curSheet,i,h))+"px";
+    th.onclick=function(){
+      if(sortState.col===i){sortState.dir=-sortState.dir;}else{sortState.col=i;sortState.dir=1;}
+      renderTable();
+    };
+    attachResizer(th,curSheet,h,i);
+    tr.appendChild(th);
+  });
+  thead.appendChild(tr);
+  var tbody=document.querySelector("#tbl tbody");
+  tbody.innerHTML="";
+  var limit=Math.min(viewList.length,300);
+  for(var i=0;i<limit;i++){
+    (function(item){
+      var r=document.createElement("tr");
+      item.row.forEach(function(v){
+        var td=document.createElement("td");
+        td.textContent=(v==null?"":v);
+        r.appendChild(td);
+      });
+      r.onclick=function(){openCard(item.row,curSheet,item.rowIdx);};
+      tbody.appendChild(r);
+    })(viewList[i]);
+  }
+  recalcTableWidth();
+  var sum=document.getElementById("summary");
+  var txt="Найдено: "+viewList.length+" из "+s.rows.length;
+  if(viewList.length>limit)txt+=" (показаны первые "+limit+")";
+  sum.textContent=txt;
+}
+
+/* ========== PICKERS ========== */
+var PLACE_OPTIONS=[], SHELF_OPTIONS=[];
+var pickerTarget=null, pickerOptions=[], pickerCb=null;
+function buildEditLists(){
+  var places={},shelves={};
+  Object.keys(DATA.sheets).forEach(function(name){
+    var ix=IDX_BY_SHEET[name];
+    DATA.sheets[name].rows.forEach(function(r){
+      if(ix.place>=0){var v=String(r[ix.place]==null?"":r[ix.place]).trim();if(v)places[v]=1;}
+      if(ix.shelf>=0){var s=String(r[ix.shelf]==null?"":r[ix.shelf]).trim();if(s)shelves[s]=1;}
+    });
+  });
+  PLACE_OPTIONS=Object.keys(places).sort(ruCmp);
+  SHELF_OPTIONS=Object.keys(shelves).sort(ruCmp);
+}
+function openPicker(inputId,options,title,cb){
+  pickerTarget=inputId;
+  pickerCb=cb||null;
+  pickerOptions=options;
+  document.getElementById("pickerTitle").textContent=title;
+  document.getElementById("pickerSearch").value="";
+  renderPickerList("");
+  document.getElementById("pickerOverlay").classList.remove("hidden");
+  setTimeout(function(){document.getElementById("pickerSearch").focus();},120);
+}
+function renderPickerList(filter){
+  var box=document.getElementById("pickerList");
+  var f=normText(filter);
+  var items=f?pickerOptions.filter(function(v){return normText(v).indexOf(f)>=0;}):pickerOptions;
+  document.getElementById("pickerCount").textContent="Всего: "+pickerOptions.length+(f?" · найдено: "+items.length:"");
+  box.innerHTML="";
+  var limit=Math.min(items.length,300);
+  for(var i=0;i<limit;i++){
+    (function(v){
+      var d=document.createElement("div");
+      d.className="pitem";
+      d.textContent=v;
+      d.onclick=function(){
+        if(pickerCb){pickerCb(v);}
+        else if(pickerTarget){document.getElementById(pickerTarget).value=v;}
+        document.getElementById("pickerOverlay").classList.add("hidden");
+      };
+      box.appendChild(d);
+    })(items[i]);
+  }
+  if(items.length>limit){
+    var m=document.createElement("div");
+    m.className="pitem";m.style.color="var(--label3)";
+    m.textContent="… показаны первые "+limit+", уточните фильтр";
+    box.appendChild(m);
+  }
+  if(items.length===0){
+    var e2=document.createElement("div");
+    e2.className="pitem";e2.style.color="var(--label3)";
+    e2.textContent="Ничего не найдено — можно вписать своё значение в поле";
+    box.appendChild(e2);
+  }
+}
+document.getElementById("pickerSearch").addEventListener("input",function(){renderPickerList(this.value);});
+document.getElementById("pickerClose").onclick=function(){document.getElementById("pickerOverlay").classList.add("hidden");};
+document.getElementById("pickerOverlay").onclick=function(e){if(e.target===this)this.classList.add("hidden");};
+document.getElementById("btnPickPlace").onclick=function(){openPicker("editPlace",PLACE_OPTIONS,"Контейнер / площадка");};
+document.getElementById("btnPickShelf").onclick=function(){openPicker("editShelf",SHELF_OPTIONS,"Полка / место");};
+
+/* ========== CONTAINER CARD ========== */
+function findItemsInContainer(containerName){
+  var out=[];
+  Object.keys(DATA.sheets).forEach(function(name){
+    var ix=IDX_BY_SHEET[name];
+    if(ix.place<0)return;
+    DATA.sheets[name].rows.forEach(function(r,i){
+      var pl=String(r[ix.place]==null?"":r[ix.place]).trim();
+      if(pl===containerName){
+        var buh=ix.buh>=0?String(r[ix.buh]==null?"":r[ix.buh]):"";
+        var book=ix.fact>=0?(toNum(r[ix.fact])||0):0;
+        var shelf=ix.shelf>=0?String(r[ix.shelf]==null?"":r[ix.shelf]).trim():"";
+        out.push({sheet:name,rowIdx:i,name:String(r[ix.name]==null?"":r[ix.name]),buh:buh,book:book,shelf:shelf});
+      }
+    });
+  });
+  out.sort(function(a,b){return ruCmp(a.shelf,b.shelf)||ruCmp(a.name,b.name);});
+  return out;
+}
+function openContainerCard(containerName){
+  var items=findItemsInContainer(containerName);
+  var html='<div class="cbox"><div class="ctitle">Контейнер / площадка</div>'+
+    '<div class="cname">'+esc(containerName)+'</div>'+
+    '<div class="cmeta">Позиций в учёте: '+items.length+'</div></div>';
+  if(!items.length){
+    html+='<div class="kv"><div class="v" style="color:var(--label3)">По учёту в этом контейнере позиций нет</div></div>';
+  }else{
+    html+='<div class="clist">';
+    var lastG=null;
+    items.forEach(function(it,idx){
+      var g=it.shelf||"— без полки —";
+      if(g!==lastG){
+        html+='<div class="crow ghead"><div class="cname2">'+esc(g)+"</div></div>";
+        lastG=g;
+      }
+      html+='<div class="crow item" data-idx="'+idx+'"><div class="cname2">'+esc(it.name)+
+        '<span class="cmeta2">Бух: '+esc(it.buh||"—")+' · Учёт: '+esc(it.book)+"</span></div></div>";
+    });
+    html+='</div>';
+  }
+  html+='<div class="cardbtns"><button id="btnStartInvFromCard" class="btn warn">Начать инвентаризацию этого контейнера</button></div>';
+  document.getElementById("cardBody").innerHTML=html;
+  document.getElementById("cardBody").querySelectorAll(".crow.item").forEach(function(row){
+    row.onclick=function(){
+      var it=items[parseInt(this.dataset.idx,10)];
+      document.getElementById("cardOverlay").classList.add("hidden");
+      openCard(DATA.sheets[it.sheet].rows[it.rowIdx],it.sheet,it.rowIdx);
+    };
+  });
+  document.getElementById("cardBody").querySelector("#btnStartInvFromCard").onclick=function(){
+    document.getElementById("cardOverlay").classList.add("hidden");
+    showView("scan");
+    enterInvMode(false);
+    invContainer=containerName;
+    invShelf=null;
+    updateInvHead();
+    renderInvList();
+    if(!scanning)startCamera();
+  };
+  document.getElementById("cardOverlay").classList.remove("hidden");
+  hideSuggest();
+}
+
+/* ========== POSITION CARD + EDITOR ========== */
+var editCtx=null;
+function openCard(row,sheetName,rowIdx){
+  var s=DATA.sheets[sheetName];
+  var ix=IDX_BY_SHEET[sheetName];
+  var html="<h2>"+esc(row[ix.name])+"</h2>";
+  var place=ix.place>=0?String(row[ix.place]==null?"":row[ix.place]).trim():"";
+  var shelf=ix.shelf>=0?String(row[ix.shelf]==null?"":row[ix.shelf]).trim():"";
+  if(place||shelf){
+    html+='<div class="groupbox"><div class="gtitle">Где лежит (лист '+esc(sheetName)+')</div><div class="gval">'+esc(place||"—")+(shelf?" / полка: "+esc(shelf):"")+"</div></div>";
+  }
+  s.headers.forEach(function(h,i){
+    if(i===ix.name)return;
+    var v=row[i]==null?"":row[i];
+    var cls="";
+    if(i===ix.diff){var d=toNum(v);cls=(d!=null&&d!==0)?"diffbad":"diffgood";}
+    html+='<div class="kv"><div class="k">'+esc(h)+'</div><div class="v '+cls+'">'+esc(v)+"</div></div>";
+  });
+  html+='<div class="cardbtns"><button id="btnEdit" class="btn warn">Изменить факт/место</button></div>';
+  document.getElementById("cardBody").innerHTML=html;
+  document.getElementById("cardBody").querySelector("#btnEdit").onclick=function(){
+    openEdit(sheetName,rowIdx);
+  };
+  document.getElementById("cardOverlay").classList.remove("hidden");
+  hideSuggest();
+}
+function openEdit(sheetName,rowIdx){
+  var sh=DATA.sheets[sheetName];
+  var ix=IDX_BY_SHEET[sheetName];
+  var row=sh.rows[rowIdx];
+  editCtx={sheet:sheetName,rowIdx:rowIdx,
+    buh:ix.buh>=0?normBuh(row[ix.buh]):"",
+    orig:{
+      fact:ix.fact>=0?String(row[ix.fact]==null?"":row[ix.fact]):null,
+      place:ix.place>=0?String(row[ix.place]==null?"":row[ix.place]):null,
+      shelf:ix.shelf>=0?String(row[ix.shelf]==null?"":row[ix.shelf]):null
+    }};
+  document.getElementById("editTitle").textContent="Изменить: "+row[ix.name];
+  document.getElementById("editFact").value=editCtx.orig.fact||"";
+  document.getElementById("editPlace").value=editCtx.orig.place||"";
+  document.getElementById("editShelf").value=editCtx.orig.shelf||"";
+  document.getElementById("editStatus").textContent="";
+  document.getElementById("editOverlay").classList.remove("hidden");
+}
+document.getElementById("editClose").onclick=function(){document.getElementById("editOverlay").classList.add("hidden");};
+document.getElementById("editCancel").onclick=function(){document.getElementById("editOverlay").classList.add("hidden");};
+document.getElementById("editOverlay").onclick=function(e){if(e.target===this)this.classList.add("hidden");};
+document.getElementById("editSave").onclick=async function(){
+  if(!editCtx)return;
+  var st=document.getElementById("editStatus");
+  st.textContent="";
+  var factV=document.getElementById("editFact").value.trim();
+  var placeV=document.getElementById("editPlace").value.trim();
+  var shelfV=document.getElementById("editShelf").value.trim();
+  var payload={device:deviceId(),sheet:editCtx.sheet,buh:editCtx.buh};
+  var changed=false;
+  if(factV!==""){payload.fact=factV;changed=true;}
+  if(editCtx.orig.place!==null&&placeV!==editCtx.orig.place){payload.place=placeV;changed=true;}
+  if(editCtx.orig.shelf!==null&&shelfV!==editCtx.orig.shelf){payload.shelf=shelfV;changed=true;}
+  if(!changed){st.textContent="Нет изменений для сохранения.";return;}
+  this.disabled=true;
+  try{
+    var res=await apiPostSafe("update",payload);
+    var ix=IDX_BY_SHEET[editCtx.sheet];
+    var row=DATA.sheets[editCtx.sheet].rows[editCtx.rowIdx];
+    if(factV!==""&&ix.fact>=0)row[ix.fact]=parseFloat(factV.replace(",","."));
+    if(payload.place!==undefined&&ix.place>=0)row[ix.place]=placeV;
+    if(payload.shelf!==undefined&&ix.shelf>=0)row[ix.shelf]=shelfV;
+    localStorage.setItem(LS_KEY,JSON.stringify(DATA));
+    renderTable();
+    buildEditLists();
+    document.getElementById("editOverlay").classList.add("hidden");
+    document.getElementById("cardOverlay").classList.add("hidden");
+    toast(res.queued?"Правка в очереди: уйдёт при появлении сети":"Правка принята: применится на ПК за ~5–15 сек");
+  }catch(e){
+    st.textContent="Ошибка: "+e;
+  }finally{
+    this.disabled=false;
+  }
+};
+
+/* ========== SUGGEST / BADGE / DATA ========== */
+function hideSuggest(){document.getElementById("suggest").style.display="none";}
+function showSuggest(items,q){
+  var box=document.getElementById("suggest");
+  if(!items.length||!q){hideSuggest();return;}
+  box.innerHTML="";
+  var ix=IX();
+  items.slice(0,12).forEach(function(item){
+    var d=document.createElement("div");
+    d.className="sitem";
+    var buh=ix.buh>=0?String(item.row[ix.buh]==null?"":item.row[ix.buh]):"";
+    var ost=ix.ost>=0?String(item.row[ix.ost]==null?"":item.row[ix.ost]):"";
+    var fact=ix.fact>=0?String(item.row[ix.fact]==null?"":item.row[ix.fact]):"";
+    d.innerHTML='<div class="sname">'+hl(item.row[ix.name],q)+'</div>'+
+      '<div class="smeta">Бух. №: '+hl(buh,q)+' · Остаток: '+esc(ost)+' · Факт: '+esc(fact)+"</div>";
+    d.onclick=function(){openCard(item.row,curSheet,item.rowIdx);};
+    box.appendChild(d);
+  });
+  box.style.display="block";
+}
+function renderSyncBadge(offline){
+  var b=document.getElementById("syncBadge");
+  var t=(offline?"ОФЛАЙН, данные: ":"данные: ")+((DATA&&DATA.sync_time)||"—");
+  b.textContent=t;
+  var sb=document.getElementById("sideBadge");
+  if(sb)sb.textContent=t;
+}
+async function loadData(){
+  try{
+    var r=await apiGet("data");
+    if(!r.ok)throw new Error("http "+r.status);
+    DATA=await r.json();
+    localStorage.setItem(LS_KEY,JSON.stringify(DATA));
+    renderSyncBadge(false);
+    pendingFlush();
+  }catch(e){
+    if(!DATA){
+      var s=localStorage.getItem(LS_KEY);
+      if(s){try{DATA=JSON.parse(s);}catch(e2){}}
+    }
+    renderSyncBadge(true);
+  }
+  if(DATA){
+    if(!curSheet||!DATA.sheets[curSheet])curSheet=Object.keys(DATA.sheets)[0];
+    computeAllIdx();renderTabs();renderChips();renderTable();buildEditLists();
+  }else{
+    document.getElementById("summary").textContent="Нет данных: сервер недоступен и кэш пуст";
+  }
+}
+
+/* ========== SCANNER ========== */
+var scanner=null, scanning=false, torchOn=false, lastCode="", lastCodeTime=0;
+var facing="environment";
+var soundOn=localStorage.getItem("smr_sound")!=="0";
+var sessionScans=[], scanTotal=0, scanFoundTotal=0;
+var capsNoteShown=false;
+function scanStatus(t){document.getElementById("scanStatus").textContent=t;}
+function beep(freq,dur){
+  try{
+    var ctx=beep.ctx||(beep.ctx=new (window.AudioContext||window.webkitAudioContext)());
+    var o=ctx.createOscillator(),g=ctx.createGain();
+    o.frequency.value=freq;o.connect(g);g.connect(ctx.destination);
+    g.gain.setValueAtTime(0.15,ctx.currentTime);
+    o.start();o.stop(ctx.currentTime+(dur||0.12));
+  }catch(e){}
+}
+function feedback(found){
+  if(soundOn)beep(found?880:240,found?0.12:0.25);
+  try{navigator.vibrate&&navigator.vibrate(found?120:[80,60,80]);}catch(e){}
+  var f=document.getElementById("scanFlash");
+  f.classList.remove("ok","bad");
+  void f.offsetWidth;
+  f.classList.add(found?"ok":"bad");
+  setTimeout(function(){f.classList.remove("ok","bad");},350);
+}
+function getVideoTrack(){
+  var v=document.querySelector("#reader video")||document.getElementById("reader__video");
+  if(!v||!v.srcObject)return null;
+  var t=v.srcObject.getTracks?v.srcObject.getTracks()[0]:null;
+  return t||null;
+}
+function applyZoom(v){
+  var t=getVideoTrack();if(!t)return;
+  t.applyConstraints({advanced:[{zoom:v}]}).catch(function(){});
+  document.getElementById("zoom").value=v;
+  document.querySelectorAll(".zpreset").forEach(function(b){
+    b.classList.toggle("on",parseFloat(b.dataset.z)===parseFloat(v));
+  });
+}
+function setupTorchZoom(){
+  var t=getVideoTrack();
+  if(!t){setTimeout(function(){if(scanning)setupTorchZoom();},1200);return;}
+  var caps={};
+  try{caps=t.getCapabilities?t.getCapabilities()||{}:{};}catch(e){}
+  var showed=false;
+  if(caps.torch){document.getElementById("btnTorch").classList.remove("hidden");showed=true;}
+  if(caps.zoom){
+    var z=document.getElementById("zoom");
+    z.min=caps.zoom.min||1;z.max=caps.zoom.max||8;z.step=caps.zoom.step||0.1;
+    document.getElementById("zoomWrap").classList.remove("hidden");
+    showed=true;
+  }
+  if(!showed&&!capsNoteShown){
+    capsNoteShown=true;
+    setTimeout(function(){
+      if(scanning){
+        setupTorchZoom();
+        var t2=getVideoTrack();var c2={};
+        try{c2=t2&&t2.getCapabilities?t2.getCapabilities()||{}:{};}catch(e){}
+        if(!c2.torch&&!c2.zoom)scanStatus("Камера работает. Вспышка/зум не поддерживаются этим устройством.");
+      }
+    },1500);
+  }
+}
+async function startCamera(){
+  if(typeof Html5Qrcode==="undefined"){scanStatus("Библиотека сканера не загружена.");return;}
+  if(scanning)return;
+  scanStatus("Включаю камеру...");
+  try{
+    scanner=new Html5Qrcode("reader",{verbose:false});
+    await scanner.start({facingMode:facing},{fps:10,qrbox:{width:240,height:160}},
+      function(decoded){onScan(decoded);},function(){});
+    scanning=true;torchOn=false;
+    document.getElementById("btnStart").classList.add("hidden");
+    document.getElementById("btnStop").classList.remove("hidden");
+    document.getElementById("btnFlip").classList.remove("hidden");
+    document.getElementById("btnTorch").classList.add("hidden");
+    document.getElementById("btnTorch").classList.remove("on");
+    document.getElementById("zoomWrap").classList.add("hidden");
+    document.getElementById("zoom").value=1;
+    document.querySelectorAll(".zpreset").forEach(function(b){b.classList.remove("on");});
+    scanStatus("Камера работает. Наведите рамку на QR/штрих-код.");
+    setupTorchZoom();
+    setTimeout(function(){if(scanning)setupTorchZoom();},1500);
+    renderSession();
+  }catch(e){
+    scanStatus("Не удалось включить камеру: "+e);
+  }
+}
+async function stopCamera(){
+  if(!scanning)return;
+  try{await scanner.stop();scanner.clear();}catch(e){}
+  scanning=false;torchOn=false;
+  document.getElementById("btnStart").classList.remove("hidden");
+  document.getElementById("btnStop").classList.add("hidden");
+  document.getElementById("btnTorch").classList.add("hidden");
+  document.getElementById("btnTorch").classList.remove("on");
+  document.getElementById("btnFlip").classList.add("hidden");
+  document.getElementById("zoomWrap").classList.add("hidden");
+  scanStatus("Камера выключена");
+  renderSession();
+}
+document.getElementById("btnStart").onclick=startCamera;
+document.getElementById("btnStop").onclick=stopCamera;
+document.getElementById("btnTorch").onclick=function(){
+  var t=getVideoTrack();if(!t)return;
+  torchOn=!torchOn;
+  t.applyConstraints({advanced:[{torch:torchOn}]}).catch(function(e){scanStatus("Вспышка не переключилась: "+e);});
+  this.classList.toggle("on",torchOn);
+};
+document.getElementById("btnFlip").onclick=async function(){
+  facing=(facing==="environment")?"user":"environment";
+  if(scanning){await stopCamera();await startCamera();}
+};
+document.getElementById("btnSound").onclick=function(){
+  soundOn=!soundOn;
+  localStorage.setItem("smr_sound",soundOn?"1":"0");
+  this.textContent="Звук: "+(soundOn?"вкл":"выкл");
+};
+document.getElementById("btnSound").textContent="Звук: "+(soundOn?"вкл":"выкл");
+document.getElementById("zoom").oninput=function(){applyZoom(parseFloat(this.value));};
+document.querySelectorAll(".zpreset").forEach(function(b){
+  b.onclick=function(){applyZoom(parseFloat(b.dataset.z));};
+});
+document.getElementById("btnManual").onclick=function(){
+  var v=document.getElementById("manualCode").value.trim();
+  if(v)handleCode(v,"manual");
+};
+function onScan(decoded){
+  var now=Date.now();
+  if(decoded===lastCode&&now-lastCodeTime<2500)return;
+  lastCode=decoded;lastCodeTime=now;
+  handleCode(decoded,"qr");
+}
+function findAcrossSheets(norm,raw){
+  var hits=[];
+  if(!DATA)return hits;
+  Object.keys(DATA.sheets).forEach(function(name){
+    var ix=IDX_BY_SHEET[name];
+    var rows=DATA.sheets[name].rows;
+    for(var i=0;i<rows.length;i++){
+      var r=rows[i];
+      var ok=false;
+      if(norm&&ix.buh>=0&&normBuh(r[ix.buh])===norm)ok=true;
+      if(!ok&&raw&&normText(r[ix.name]).indexOf(normText(raw))>=0)ok=true;
+      if(ok){hits.push({sheet:name,row:r,rowIdx:i});break;}
+    }
+  });
+  return hits;
+}
+function renderSession(){
+  try{
+    var title=document.getElementById("sessionTitle");
+    var box=document.getElementById("sessionList");
+    title.classList.toggle("hidden",sessionScans.length===0);
+    box.innerHTML="";
+    if(sessionScans.length===0){
+      if(scanning)box.innerHTML='<div class="schip empty"><span class="sn">пока пусто — отсканируйте код</span></div>';
+      return;
+    }
+    sessionScans.forEach(function(s){
+      var d=document.createElement("div");
+      d.className="schip"+(s.found?"":" notfound");
+      var dt=new Date(s.t);
+      d.innerHTML='<span class="st">'+dt.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit",second:"2-digit"})+'</span><span class="sn">'+esc(s.found?s.name:"НЕ НАЙДЕНО: "+s.raw)+"</span>";
+      if(s.found)d.onclick=function(){openCard(DATA.sheets[s.sheet].rows[s.rowIdx],s.sheet,s.rowIdx);};
+      box.appendChild(d);
+    });
+  }catch(e){}
+}
+function pushSession(rec){
+  try{sessionScans.unshift(rec);if(sessionScans.length>6)sessionScans.length=6;renderSession();}catch(e){}
+}
+
+/* ========== INVENTORY ========== */
+var invMode=false, invContainer=null, invShelf=null, invItems=[], invLastItems=null;
+var invHideZero=localStorage.getItem(LS_INVZERO)==="1";
+var invDraftKey=null;
+var WHOLE="(весь контейнер)";
+
+function saveInvDraftLocal(){
+  try{
+    localStorage.setItem(LS_INVDRAFT,JSON.stringify({
+      key:invDraftKey,container:invContainer,shelf:invShelf,hideZero:invHideZero,
+      items:invItems,savedAt:Date.now()}));
+  }catch(e){}
+}
+function loadInvDraftLocal(){try{return JSON.parse(localStorage.getItem(LS_INVDRAFT)||"null");}catch(e){return null;}}
+function clearInvDraftLocal(){localStorage.removeItem(LS_INVDRAFT);}
+function serverSaveDraft(){
+  if(!invDraftKey)invDraftKey="inv_"+Date.now()+"_"+deviceId();
+  var scopes=invScopes();
+  apiPostSafe("draft_save",{
+    key:invDraftKey,
+    container:scopes.length?scopes[0].container:(invContainer||""),
+    shelf:scopes.length?(scopes[0].shelf||""):(invShelf||""),
+    device:deviceId(),hideZero:invHideZero,items:invItems
+  });
+}
+function serverDeleteDraft(){
+  if(!invDraftKey)return;
+  apiPostSafe("draft_delete",{key:invDraftKey});
+  invDraftKey=null;
+}
+function saveInvDraft(){if(!invMode)return;saveInvDraftLocal();serverSaveDraft();}
+function loadServerDraft(key){
+  apiGet("draft",{key:key}).then(function(r){return r.json();}).then(function(d){
+    if(!d||!d.items||!d.items.length){toast("Черновик пуст");return;}
+    invItems=d.items||[];
+    invContainer=d.container||null;
+    invShelf=(d.shelf===""||d.shelf==null)?null:d.shelf;
+    invDraftKey=d.key||key;
+    if(typeof d.hideZero==="boolean")invHideZero=d.hideZero;
+    updateInvHead();renderInvList();
+    toast("Черновик загружен: позиций "+invItems.length);
+  }).catch(function(e){toast("Не удалось загрузить черновик: "+e);});
+}
+function invScopes(){
+  var seen={},out=[];
+  invItems.forEach(function(it){
+    if(!it.container)return;
+    var k=it.container+"\u0001"+(it.shelf||"");
+    if(!seen[k]){seen[k]=1;out.push({container:it.container,shelf:it.shelf||null});}
+  });
+  return out;
+}
+function shelvesForContainer(c){
+  var set={};
+  Object.keys(DATA.sheets).forEach(function(name){
+    var ix=IDX_BY_SHEET[name];
+    if(ix.place<0||ix.shelf<0)return;
+    DATA.sheets[name].rows.forEach(function(r){
+      var pl=String(r[ix.place]==null?"":r[ix.place]).trim();
+      if(pl!==c)return;
+      var sh=String(r[ix.shelf]==null?"":r[ix.shelf]).trim();
+      if(sh)set[sh]=1;
+    });
+  });
+  return [WHOLE].concat(Object.keys(set).sort(ruCmp));
+}
+function placeShelfOfRow(r,ix){
+  return [String(r[ix.place]==null?"":r[ix.place]).trim(),String(r[ix.shelf]==null?"":r[ix.shelf]).trim()];
+}
+function placeShelfOfItem(it){
+  if(it.sheet&&DATA.sheets[it.sheet]&&it.rowIdx!=null){
+    var ix=IDX_BY_SHEET[it.sheet];
+    var r=DATA.sheets[it.sheet].rows[it.rowIdx];
+    if(r)return placeShelfOfRow(r,ix);
+  }
+  return ["",""];
+}
+function statusClass(st){
+  if(st==="совпадает")return "st-ok";
+  if(st==="не найдена при инвентаризации"||st==="неизвестный код")return "st-bad";
+  return "st-warn";
+}
+function rowStatus(it){
+  if(it.unknown)return "неизвестный код";
+  var parts=[];
+  var counted=toNum(it.counted);if(counted==null)counted=0;
+  if(Math.abs(counted-it.book)>1e-9)parts.push("расхождение количества");
+  var ps=placeShelfOfItem(it);
+  if(ps[0]!==it.container)parts.push("другое место хранения");
+  else if(it.shelf!=null&&ps[1]!==it.shelf)parts.push("другая полка");
+  return parts.length?parts.join(" + "):"совпадает";
+}
+function invStatsText(){
+  var ok=0;
+  invItems.forEach(function(it){if(rowStatus(it)==="совпадает")ok++;});
+  var sc=invScopes();
+  return (sc.length>1?("Объёмов: "+sc.length+" · "):"")+
+    "В списке: "+invItems.length+" · совпадает: "+ok+" · расхождений: "+(invItems.length-ok)+
+    (invHideZero?" · нули скрыты":"");
+}
+function renderInvList(){
+  var box=document.getElementById("invList");
+  var stats=document.getElementById("invStats");
+  if(!invMode)return;
+  stats.textContent=invStatsText();
+  box.innerHTML="";
+  if(!invItems.length){
+    box.innerHTML='<div class="invrow"><div class="invname" style="color:var(--label3)">Список пуст — сканируйте позиции контейнера</div></div>';
+  }else{
+    var multi=invScopes().length>1;
+    invItems.forEach(function(it,idx){
+      var st=rowStatus(it);
+      var d=document.createElement("div");
+      d.className="invrow";
+      var scopeTxt=multi?(" · ["+esc(it.container||"—")+(it.shelf?"/"+esc(it.shelf):"")+"]"):"";
+      var meta=esc(it.buh||"—")+" · учёт: "+esc(it.book)+scopeTxt+" · <span class='"+statusClass(st)+"'>"+esc(st)+"</span>";
+      d.innerHTML='<div class="invname">'+esc(it.name)+'<span class="invmeta">'+meta+"</span></div>"+
+        '<input class="invnum" type="number" step="any" inputmode="decimal" value="'+esc(it.counted)+'">'+
+        '<button class="invdel">&#10005;</button>';
+      d.querySelector(".invnum").addEventListener("change",function(){
+        it.counted=this.value===""?0:parseFloat(String(this.value).replace(",","."));
+        renderInvList();
+      });
+      d.querySelector(".invdel").onclick=function(){invItems.splice(idx,1);renderInvList();};
+      box.appendChild(d);
+    });
+  }
+  saveInvDraft();
+}
+function updateInvHead(){
+  document.getElementById("invPlaceLabel").textContent=
+    "Контейнер: "+(invContainer||"не выбран")+(invContainer?(" · Полка: "+(invShelf||"вся")):"");
+  document.getElementById("btnInvShelf").textContent="▾ Полка: "+(invShelf||"вся");
+  document.getElementById("btnInvZero").textContent="Нули: "+(invHideZero?"скрыть":"показывать");
+  document.getElementById("btnInvZero").classList.toggle("on",invHideZero);
+}
+function showInvControls(on){
+  ["btnInvPlace","btnInvShelf","btnInvZero","btnInvVoice","btnInvPause","btnInvFinish","invPlaceLabel","invStats","invList"].forEach(function(id){
+    document.getElementById(id).classList.toggle("hidden",!on);
+  });
+  if(!on)document.getElementById("invSummary").classList.add("hidden");
+}
+function enterInvMode(askDraft){
+  invMode=true;
+  document.getElementById("invSwitch").checked=true;
+  showInvControls(true);
+  invItems=[];
+  var d=askDraft?loadInvDraftLocal():null;
+  if(d&&d.items&&d.items.length){
+    var when=new Date(d.savedAt).toLocaleString("ru-RU");
+    if(confirm("Продолжить прерванную инвентаризацию?\nСохранена: "+when+
+               "\nКонтейнер: "+(d.container||"—")+(d.shelf?" · полка: "+d.shelf:"")+
+               "\nПозиций: "+d.items.length)){
+      invContainer=d.container||null;
+      invShelf=(d.shelf==null||d.shelf==="")?null:d.shelf;
+      invHideZero=!!d.hideZero;
+      invItems=d.items;
+      invDraftKey=d.key||null;
+    }else{
+      if(confirm("Удалить сохранённую инвентаризацию и начать заново?")){
+        clearInvDraftLocal();
+        if(d.key){invDraftKey=d.key;serverDeleteDraft();}
+      }
+      invItems=[];
+    }
+  }
+  updateInvHead();renderInvList();
+  if(!invItems.length){
+    apiGet("drafts").then(function(r){return r.json();}).then(function(j){
+      var list=j.drafts||[];
+      if(!list.length)return;
+      if(!confirm("На сервере есть сохранённые инвентаризации ("+list.length+"). Открыть список для продолжения?"))return;
+      var labels=list.map(function(x){
+        return x.saved_at+" · "+(x.container||"—")+(x.shelf?" / "+x.shelf:"")+" · позиций: "+x.items_count+" · "+x.device;
+      });
+      openPicker(null,labels,"Черновики инвентаризации (сервер)",function(label){
+        var i=labels.indexOf(label);
+        if(i>=0)loadServerDraft(list[i].key);
+      });
+    }).catch(function(){});
+  }
+}
+function exitInvMode(){
+  invMode=false;
+  document.getElementById("invSwitch").checked=false;
+  showInvControls(false);
+  stopVoice();
+}
+document.getElementById("invSwitch").onchange=function(){
+  if(this.checked)enterInvMode(true);else exitInvMode();
+};
+document.getElementById("btnInvPlace").onclick=function(){
+  openPicker(null,PLACE_OPTIONS,"Контейнер инвентаризации",function(v){
+    invContainer=v;invShelf=null;updateInvHead();renderInvList();
+  });
+};
+document.getElementById("btnInvShelf").onclick=function(){
+  if(!invContainer){toast("Сначала выберите контейнер");return;}
+  openPicker(null,shelvesForContainer(invContainer),"Полка контейнера",function(v){
+    invShelf=(v===WHOLE)?null:v;
+    updateInvHead();renderInvList();
+  });
+};
+document.getElementById("btnInvZero").onclick=function(){
+  invHideZero=!invHideZero;
+  localStorage.setItem(LS_INVZERO,invHideZero?"1":"0");
+  updateInvHead();renderInvList();
+};
+document.getElementById("btnInvPause").onclick=function(){
+  saveInvDraft();
+  exitInvMode();
+  toast("Инвентаризация сохранена (телефон + сервер) — продолжите позже");
+};
+
+/* voice */
+var recog=null, recogOn=false;
+var RU_UNITS={"ноль":0,"один":1,"одна":1,"два":2,"две":2,"три":3,"четыре":4,"пять":5,"шесть":6,"семь":7,"восемь":8,"девять":9,"десять":10,"одиннадцать":11,"двенадцать":12,"тринадцать":13,"четырнадцать":14,"пятнадцать":15,"шестнадцать":16,"семнадцать":17,"восемнадцать":18,"девятнадцать":19};
+var RU_TENS={"двадцать":20,"тридцать":30,"сорок":40,"пятьдесят":50,"шестьдесят":60,"семьдесят":70,"восемьдесят":80,"девяносто":90};
+var RU_HUNDS={"сто":100,"двести":200,"триста":300,"четыреста":400,"пятьсот":500,"шестьсот":600,"семьсот":700,"восемьсот":800,"девятьсот":900};
+function parseRuNumber(txt){
+  var t=normText(txt);
+  var m=t.match(/\d+/);
+  if(m)return parseInt(m[0],10);
+  var words=t.replace(/[^а-яё\s]/g,"").split(/\s+/);
+  var total=0,cur=0,found=false;
+  words.forEach(function(w){
+    if(RU_UNITS[w]!==undefined){cur+=RU_UNITS[w];found=true;}
+    else if(RU_TENS[w]!==undefined){cur+=RU_TENS[w];found=true;}
+    else if(RU_HUNDS[w]!==undefined){cur+=RU_HUNDS[w];found=true;}
+    else if(w==="тысяча"){total+=(cur||1)*1000;cur=0;found=true;}
+  });
+  if(!found)return null;
+  var res=total+cur;
+  return res>0?res:null;
+}
+function updateVoiceBtn(){
+  var b=document.getElementById("btnInvVoice");
+  b.textContent=recogOn?"🎤 слушает…":"🎤 Голос";
+  b.classList.toggle("listening",recogOn);
+}
+function stopVoice(){recogOn=false;try{if(recog)recog.stop();}catch(e){}updateVoiceBtn();}
+document.getElementById("btnInvVoice").onclick=function(){
+  if(recogOn){stopVoice();return;}
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){toast("Голосовой ввод не поддерживается этим браузером");return;}
+  if(!invItems.length){toast("Список пуст — сначала отсканируйте позицию");return;}
+  try{
+    recog=new SR();recog.lang="ru-RU";recog.interimResults=false;recog.maxAlternatives=1;
+    recog.onresult=function(e){
+      var txt=e.results[0][0].transcript;
+      var n=parseRuNumber(txt);
+      if(n==null){toast("Не распознано число в фразе: "+txt);return;}
+      if(!invItems.length){toast("Список пуст");return;}
+      var it=invItems[invItems.length-1];
+      it.counted=n;renderInvList();
+      toast("Подсчитано = "+n+" → "+it.name);
+    };
+    recog.onend=function(){recogOn=false;updateVoiceBtn();};
+    recog.onerror=function(){recogOn=false;updateVoiceBtn();};
+    recog.start();recogOn=true;updateVoiceBtn();
+    toast("Скажите количество (например: «пятнадцать»)");
+  }catch(e){toast("Ошибка голосового ввода: "+e);}
+};
+
+function invHandle(raw,norm,hits){
+  if(!invContainer){
+    feedback(false);
+    toast("Сначала выберите контейнер инвентаризации");
+    openPicker(null,PLACE_OPTIONS,"Контейнер инвентаризации",function(v){
+      invContainer=v;invShelf=null;updateInvHead();renderInvList();
+    });
+    return;
+  }
+  if(!hits.length){
+    invItems.push({sheet:"",buh:norm||raw,name:"НЕИЗВЕСТНЫЙ КОД: "+raw,book:0,counted:0,unknown:true,rowIdx:null,
+      container:invContainer,shelf:invShelf});
+    feedback(false);renderInvList();return;
+  }
+  var h=hits[0];
+  var ix=IDX_BY_SHEET[h.sheet];
+  var buh=ix.buh>=0?normBuh(h.row[ix.buh]):norm;
+  var exists=invItems.some(function(it){return it.sheet===h.sheet&&it.buh===buh;});
+  if(exists){
+    try{navigator.vibrate&&navigator.vibrate([60,40,60]);}catch(e){}
+    toast("Позиция уже в списке инвентаризации");
+    return;
+  }
+  var book=ix.fact>=0?(toNum(h.row[ix.fact])||0):0;
+  invItems.push({sheet:h.sheet,buh:buh,name:String(h.row[ix.name]),book:book,counted:book,unknown:false,rowIdx:h.rowIdx,
+    container:invContainer,shelf:invShelf});
+  feedback(true);renderInvList();
+}
+function invMissingRows(){
+  var missing=[];
+  var scanned={};
+  invItems.forEach(function(it){if(it.sheet)scanned[it.sheet+"\u0001"+it.buh]=1;});
+  invScopes().forEach(function(sc){
+    Object.keys(DATA.sheets).forEach(function(name){
+      var ix=IDX_BY_SHEET[name];
+      if(ix.place<0||ix.buh<0)return;
+      DATA.sheets[name].rows.forEach(function(r,i){
+        var ps=placeShelfOfRow(r,ix);
+        if(ps[0]!==sc.container)return;
+        if(sc.shelf!=null&&ps[1]!==sc.shelf)return;
+        var book=ix.fact>=0?(toNum(r[ix.fact])||0):0;
+        if(invHideZero&&Math.abs(book)<1e-9)return;
+        var buh=normBuh(r[ix.buh]);
+        if(!buh)return;
+        if(scanned[name+"\u0001"+buh])return;
+        missing.push({sheet:name,buh:buh,name:String(r[ix.name]==null?"":r[ix.name]),
+          book:book,counted:0,unknown:false,rowIdx:i,container:sc.container,shelf:sc.shelf});
+      });
+    });
+  });
+  return missing;
+}
+function checkDuplicates(scopes,cb){
+  var warns=[],done=0;
+  if(!scopes.length){cb("");return;}
+  scopes.forEach(function(sc){
+    apiGet("check_inv",{container:sc.container,shelf:sc.shelf||""})
+      .then(function(r){return r.json();})
+      .then(function(j){
+        (j.prev||[]).forEach(function(p){
+          warns.push("· "+sc.container+(sc.shelf?" / "+sc.shelf:"")+": сегодня в "+p.time+" ("+p.rows+" строк, устр. "+p.device+")");
+        });
+      })
+      .catch(function(){})
+      .then(function(){
+        done++;
+        if(done>=scopes.length)cb(warns.length?("ВНИМАНИЕ! Сегодня уже была инвентаризация:\n"+warns.join("\n")+"\n\n"):"");
+      });
+  });
+}
+document.getElementById("btnInvFinish").onclick=function(){
+  if(!invItems.length){toast("Список инвентаризации пуст");return;}
+  var scopes=invScopes();
+  if(!scopes.length){toast("Выберите контейнер");return;}
+  var missing=invMissingRows();
+  var items=invItems.map(function(it){
+    var counted=toNum(it.counted);if(counted==null)counted=0;
+    return {sheet:it.sheet,buh:it.buh,name:it.name,book:it.book,counted:counted,
+      container:it.container||"",shelf:it.shelf||"",
+      diff:Math.round((counted-it.book)*1000)/1000,status:rowStatus(it),unknownFlag:!!it.unknown};
+  }).concat(missing.map(function(m){
+    return {sheet:m.sheet,buh:m.buh,name:m.name,book:m.book,counted:0,
+      container:m.container||"",shelf:m.shelf||"",
+      diff:Math.round((0-m.book)*1000)/1000,status:"не найдена при инвентаризации",missingFlag:true};
+  }));
+  var summ={total:items.length,
+    ok:items.filter(function(i){return i.status==="совпадает";}).length,
+    missing:missing.length,
+    unknown:invItems.filter(function(i){return i.unknown;}).length,
+    scopes:scopes.length};
+  var scopeTxt=scopes.map(function(s){return "«"+s.container+"»"+(s.shelf?" / "+s.shelf:"");}).join(", ");
+  var btn=this;btn.disabled=true;
+  checkDuplicates(scopes,function(warn){
+    if(!confirm(warn+"Завершить инвентаризацию: "+scopeTxt+"?\nПозиций в отчёте: "+items.length+
+                "\nиз них не отсканировано: "+missing.length)){btn.disabled=false;return;}
+    apiPostSafe("inventory",{device:deviceId(),container:scopes[0].container,shelf:scopes[0].shelf||"",
+      summary:summ,items:items})
+      .then(function(res){
+        btn.disabled=false;
+        invLastItems=items;
+        var queued=res.queued;
+        if(!queued){clearInvDraftLocal();serverDeleteDraft();}
+        var box=document.getElementById("invSummary");
+        box.classList.remove("hidden");
+        box.innerHTML="<b>Инвентаризация "+(queued?"ПОСТАВЛЕНА В ОЧЕРЕДЬ (нет сети)","отправлена":"отправлена")+"</b><br>"+esc(scopeTxt)+
+          "<br>Всего позиций: "+summ.total+
+          "<br>Совпало: <span class='st-ok'>"+summ.ok+"</span>"+
+          "<br>Расхождения/не найдены: <span class='st-bad'>"+(summ.total-summ.ok)+"</span>"+
+          "<br>Неизвестных кодов: "+summ.unknown+
+          (queued?"<br><span class='st-warn'>Черновик сохранён: отчёт уйдёт при появлении сети</span>":"")+
+          '<div class="cardbtns"><button id="btnInvApply" class="btn good">Записать подсчитанное в Факт</button>'+
+          '<button id="btnInvCsv" class="btn">Экспорт CSV</button><button id="btnInvClear" class="btn">Скрыть</button></div>';
+        box.querySelector("#btnInvApply").onclick=applyInventoryToFact;
+        box.querySelector("#btnInvCsv").onclick=exportInvCsv;
+        box.querySelector("#btnInvClear").onclick=function(){box.classList.add("hidden");};
+        if(!queued){invItems=[];renderInvList();}
+        toast(queued?"Отчёт в очереди отправки":"Отчёт инвентаризации отправлен");
+      })
+      .catch(function(e){btn.disabled=false;toast("Ошибка: "+e);});
+  });
+};
+function applyInventoryToFact(){
+  var cand=(invLastItems||[]).filter(function(i){return i.sheet&&!i.unknownFlag&&!i.missingFlag;});
+  if(!cand.length){toast("Нет позиций для записи");return;}
+  if(!confirm("Поставить в очередь запись «Подсчитано» в колонку «Факт» Excel для "+cand.length+
+              " позиций?\nПК применит изменения за ~5–15 сек после появления связи.\nПозиции «не найдена» НЕ трогаются.")){return;}
+  var chunks=[];
+  for(var i=0;i<cand.length;i+=5)chunks.push(cand.slice(i,i+5));
+  (async function(){
+    var done=0;
+    for(var c=0;c<chunks.length;c++){
+      await Promise.all(chunks[c].map(function(it){
+        return apiPostSafe("update",{device:deviceId(),sheet:it.sheet,buh:it.buh,fact:String(it.counted)});
+      }));
+      done+=chunks[c].length;
+      toast("Записано позиций: "+done+" / "+cand.length);
+    }
+    setTimeout(function(){loadData();},4000);
+  })();
+}
+function exportInvCsv(){
+  if(!invLastItems)return;
+  var lines=["Контейнер;Полка;Лист;Бух. №;Наименование;Учёт (факт);Подсчитано;Разница;Статус"];
+  invLastItems.forEach(function(i){
+    lines.push([i.container,i.shelf||"",i.sheet,i.buh,i.name,i.book,i.counted,i.diff,i.status]
+      .map(function(x){return '"'+String(x==null?"":x).replace(/"/g,'""')+'"';}).join(";"));
+  });
+  var blob=new Blob(["\uFEFF"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="inventory_"+new Date().toISOString().slice(0,10)+".csv";
+  a.click();
+}
+
+/* ========== SCAN PIPELINE ========== */
+function handleCode(raw,source){
+  if(raw.indexOf("CONT:")===0){
+    var cname=raw.slice(5);
+    feedback(true);
+    openContainerCard(cname);
+    pushSession({t:Date.now(),raw:raw,norm:"",found:true,sheet:"",rowIdx:-1,name:"Контейнер: "+cname,source:source});
+    return;
+  }
+  var norm=normBuh(raw);
+  var hits=findAcrossSheets(norm,raw);
+  scanTotal++;if(hits.length)scanFoundTotal++;
+  document.getElementById("scanCount").textContent=scanTotal;
+  document.getElementById("scanFound").textContent=scanFoundTotal;
+  pushHistory({t:Date.now(),raw:raw,norm:norm,found:hits.length>0,
+    sheet:hits.length?hits[0].sheet:"",
+    name:hits.length?String(hits[0].row[IDX_BY_SHEET[hits[0].sheet].name]):"",source:source});
+  sendScan(raw,norm,hits,source);
+  if(invMode){invHandle(raw,norm,hits);return;}
+  feedback(hits.length>0);
+  var box=document.getElementById("scanResult");
+  if(!hits.length){
+    box.innerHTML='<div class="sheet"><h2>Не найдено</h2><div class="kv"><div class="k">Код</div><div class="v">'+esc(raw)+'</div></div><div class="kv"><div class="k">Нормализованный</div><div class="v">'+esc(norm||"—")+"</div></div></div>";
+  }else{
+    var h=hits[0];
+    var ix=IDX_BY_SHEET[h.sheet];
+    var place=ix.place>=0?String(h.row[ix.place]==null?"":h.row[ix.place]).trim():"";
+    var shelf=ix.shelf>=0?String(h.row[ix.shelf]==null?"":h.row[ix.shelf]).trim():"";
+    var ost=ix.ost>=0?String(h.row[ix.ost]==null?"":h.row[ix.ost]):"";
+    var fact=ix.fact>=0?String(h.row[ix.fact]==null?"":h.row[ix.fact]):"";
+    var diff=ix.diff>=0?toNum(h.row[ix.diff]):null;
+    var diffCls=(diff!=null&&diff!==0)?"diffbad":"diffgood";
+    var diffTxt=(diff==null)?(ix.diff>=0?String(h.row[ix.diff]==null?"":h.row[ix.diff]):"—"):String(diff);
+    var html='<div class="sheet"><h2>'+esc(h.row[ix.name])+'</h2>'+
+      '<div class="groupbox"><div class="gtitle">Где лежит (лист '+esc(h.sheet)+')</div><div class="gval">'+esc(place||"—")+(shelf?" / полка: "+esc(shelf):"")+"</div></div>"+
+      '<div class="kv"><div class="k">Бух. №</div><div class="v">'+esc(ix.buh>=0?h.row[ix.buh]:"")+"</div></div>"+
+      '<div class="kv"><div class="k">Остаток (1С)</div><div class="v">'+esc(ost)+"</div></div>"+
+      '<div class="kv"><div class="k">Факт</div><div class="v">'+esc(fact)+"</div></div>"+
+      '<div class="kv"><div class="k">Разница</div><div class="v '+diffCls+'">'+esc(diffTxt)+"</div></div>";
+    if(hits.length>1){
+      html+='<div class="kv"><div class="k">Также найдено</div><div class="v">'+esc(hits.slice(1).map(function(x){return x.sheet;}).join(", "))+"</div></div>";
+    }
+    html+='<div class="cardbtns"><button id="btnEdit" class="btn warn">Изменить факт/место</button><button id="btnToSearch" class="btn primary">Открыть в поиске</button><button id="btnAgain" class="btn">Сканировать дальше</button></div></div>';
+    box.innerHTML=html;
+    var name=String(h.row[ix.name]);
+    var sheetName=h.sheet, rowIdx=h.rowIdx;
+    box.querySelector("#btnEdit").onclick=function(){openEdit(sheetName,rowIdx);};
+    box.querySelector("#btnToSearch").onclick=function(){
+      document.getElementById("q").value=name;
+      showView("search");
+      document.getElementById("q").dispatchEvent(new Event("input"));
+    };
+    box.querySelector("#btnAgain").onclick=function(){
+      window.scrollTo({top:0,behavior:"smooth"});
+      box.innerHTML="";
+    };
+  }
+  pushSession({t:Date.now(),raw:raw,norm:norm,found:hits.length>0,
+    sheet:hits.length?hits[0].sheet:"",rowIdx:hits.length?hits[0].rowIdx:-1,
+    name:hits.length?String(hits[0].row[IDX_BY_SHEET[hits[0].sheet].name]):""});
+}
+function sendScan(raw,norm,hits,source){
+  apiPostSafe("scan",{device:deviceId(),raw:raw,normalized:norm,
+    found:hits.length>0,sheet:hits.length?hits[0].sheet:"",
+    item:hits.length?String(hits[0].row[IDX_BY_SHEET[hits[0].sheet].name]):"",source:source});
+}
+
+/* ========== HISTORY ========== */
+function getHistory(){try{return JSON.parse(localStorage.getItem(LS_SCANS)||"[]");}catch(e){return [];}}
+function pushHistory(rec){
+  var h=getHistory();h.unshift(rec);if(h.length>200)h.length=200;
+  localStorage.setItem(LS_SCANS,JSON.stringify(h));
+  renderHistory();
+}
+function renderHistory(){
+  var box=document.getElementById("histList");box.innerHTML="";
+  var h=getHistory();
+  if(!h.length){box.innerHTML='<div class="hitem"><div class="hn">История пуста</div></div>';return;}
+  h.forEach(function(rec){
+    var d=document.createElement("div");
+    d.className="hitem"+(rec.found?"":" notfound");
+    var dt=new Date(rec.t);
+    d.innerHTML='<div class="ht">'+dt.toLocaleString("ru-RU")+' · '+(rec.source==="manual"?"ручной ввод":"QR")+'</div>'+
+      '<div class="hn">'+esc(rec.found?rec.name:"НЕ НАЙДЕНО: "+rec.raw)+'</div>'+
+      '<div class="hc">код: '+esc(rec.raw)+' → '+esc(rec.norm||"—")+(rec.sheet?" · лист "+esc(rec.sheet):"")+"</div>";
+    box.appendChild(d);
+  });
+}
+document.getElementById("btnHistClear").onclick=function(){
+  if(confirm("Очистить историю сканирований на телефоне?")){localStorage.removeItem(LS_SCANS);renderHistory();}
+};
+document.getElementById("btnHistCsv").onclick=function(){
+  var h=getHistory();
+  var lines=["Время;Источник;Сырой код;Нормализованный;Найдено;Лист;Наименование"];
+  h.forEach(function(r){
+    var dt=new Date(r.t).toLocaleString("ru-RU");
+    lines.push([dt,r.source,r.raw,r.norm,r.found?"ДА":"НЕТ",r.sheet,r.name]
+      .map(function(x){return '"'+String(x==null?"":x).replace(/"/g,'""')+'"';}).join(";"));
+  });
+  var blob=new Blob(["\uFEFF"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);a.download="scans.csv";a.click();
+};
+
+/* ========== NAV ========== */
+function showView(name){
+  ["search","scan","history"].forEach(function(v){
+    document.getElementById("view-"+v).classList.toggle("hidden",v!==name);
+  });
+  document.getElementById("navSearch").classList.toggle("active",name==="search");
+  document.getElementById("navScan").classList.toggle("active",name==="scan");
+  document.getElementById("navHist").classList.toggle("active",name==="history");
+  document.querySelectorAll(".sideitem").forEach(function(b){
+    b.classList.toggle("active",b.dataset.view===name);
+  });
+  if(name!=="scan")stopCamera();
+  if(name==="history")renderHistory();
+}
+document.getElementById("navSearch").onclick=function(){showView("search");};
+document.getElementById("navScan").onclick=function(){showView("scan");};
+document.getElementById("navHist").onclick=function(){showView("history");};
+document.querySelectorAll(".sideitem").forEach(function(b){
+  b.onclick=function(){showView(b.dataset.view);};
+});
+
+/* ========== SEARCH EVENTS ========== */
+var debTimer=null;
+document.getElementById("q").addEventListener("input",function(){
+  clearTimeout(debTimer);
+  var q=this.value.trim();
+  debTimer=setTimeout(function(){
+    if(!DATA)return;
+    if(!q){hideSuggest();renderTable();return;}
+    var nq=normText(q),qb=normBuh(q);
+    var items=[];
+    var rows=sheet().rows;
+    for(var i=0;i<rows.length;i++){
+      var r=rows[i];
+      if(!passFilters(r))continue;
+      if(matches(r,nq,qb))items.push({row:r,rowIdx:i,rank:rank(r,nq,qb)});
+    }
+    items.sort(function(a,b){return a.rank-b.rank;});
+    showSuggest(items,q);
+    renderTable();
+  },150);
+});
+document.getElementById("q").addEventListener("keydown",function(e){if(e.key==="Escape")hideSuggest();});
+document.addEventListener("click",function(e){
+  if(!e.target.closest(".searchwrap"))hideSuggest();
+});
+document.getElementById("cardClose").onclick=function(){document.getElementById("cardOverlay").classList.add("hidden");};
+document.getElementById("cardOverlay").onclick=function(e){if(e.target===this)this.classList.add("hidden");};
+document.getElementById("refreshBtn").onclick=function(){loadData();};
+loadData();
+</script>
+</body>
+</html>
