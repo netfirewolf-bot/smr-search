@@ -13,7 +13,7 @@
 <title>ПБР · СМР Склад</title>
 <script src="html5-qrcode.min.js"></script>
 <style>
-/* дополнения v16 поверх styles.css */
+/* ===== v16: бренд-дополнения ===== */
 .sidecredits{margin-top:12px;padding:10px 12px;font-size:10.5px;color:var(--text-3);line-height:1.5;border-top:1px solid var(--border)}
 .prog{margin:8px 0}
 .progtop{font-size:12px;color:var(--text-2);font-weight:600;margin-bottom:4px;font-variant-numeric:tabular-nums}
@@ -30,7 +30,46 @@
 .tlitem{position:relative;margin-bottom:8px}
 .tlitem::before{content:"";position:absolute;left:-15px;top:14px;width:10px;height:10px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px var(--ok-soft)}
 .tlitem.bad::before{background:var(--bad);box-shadow:0 0 0 3px var(--bad-soft)}
-.aboutline{margin-top:14px;font-size:11px;color:var(--text-3);text-align:center}
+.aboutline{margin-top:14px;font-size:11px;color:var(--text-3);text-align:center;line-height:1.7}
+.aboutline .link{cursor:pointer;text-decoration:underline;color:var(--text-2)}
+/* ===== v17: плитки быстрых действий ===== */
+#tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 16px 0}
+body[data-device="desktop"] #tiles{display:none}
+.tile{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px;border:1px solid var(--border);
+  background:var(--surface);border-radius:var(--r-md);color:var(--text-2);font-size:12px;font-weight:600;
+  cursor:pointer;box-shadow:var(--sh-1);transition:transform .05s}
+.tile:active{transform:scale(.97)}
+.tile .ic{width:22px;height:22px;color:var(--primary)}
+/* ===== v17: складской режим ===== */
+body.wh-mode{font-size:17px;--text-2:var(--text);--border:var(--border-2)}
+body.wh-mode .btn{min-height:52px;font-size:16px;padding:12px 16px}
+body.wh-mode .btn.icon{min-height:44px;min-width:44px}
+body.wh-mode #q{font-size:18px;padding:14px 14px 14px 40px}
+body.wh-mode .chip{padding:11px 16px;font-size:15px}
+body.wh-mode table{font-size:15px}
+body.wh-mode tbody td{padding:13px 10px}
+body.wh-mode thead th{font-size:12px;padding:12px 10px}
+body.wh-mode .ic{width:24px;height:24px}
+body.wh-mode nav#bottom button{font-size:12px}
+body.wh-mode nav#bottom button .ic{width:26px;height:26px}
+body.wh-mode .invnum{width:96px;height:46px;font-size:16px}
+body.wh-mode .stepbtn{width:44px;height:46px;font-size:18px}
+body.wh-mode .invdel{padding:12px 14px}
+body.wh-mode .tile{padding:16px 6px;font-size:13px}
+body.wh-mode .seg button{padding:12px 0;font-size:16px}
+body.wh-mode .pitem{padding:14px 12px;font-size:16px}
+body.wh-mode .kv{font-size:16px;padding:10px 0}
+/* ===== v17: онбординг-тур ===== */
+#tourMask{position:fixed;inset:0;z-index:95;pointer-events:none}
+#tourRing{position:fixed;border:2px solid var(--primary);border-radius:12px;pointer-events:none;
+  box-shadow:0 0 0 9999px rgba(10,14,20,.55);transition:all .2s}
+#tourCard{position:fixed;width:320px;max-width:calc(100vw - 20px);background:var(--surface);
+  border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--sh-3);padding:14px;
+  pointer-events:auto;z-index:96}
+#tourCard .tstep{font-size:11px;font-weight:700;color:var(--primary);letter-spacing:.04em}
+#tourCard h3{margin:4px 0 6px;font-size:15px}
+#tourCard p{margin:0 0 12px;font-size:13px;color:var(--text-2);line-height:1.5}
+#tourCard .tbtns{display:flex;gap:8px;justify-content:flex-end}
 </style>
 </head>
 <body data-device="phone">
@@ -57,6 +96,7 @@
 <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14A8 8 0 1 1 10 4a7 7 0 0 0 10 10z"/></symbol>
 <symbol id="i-wifioff" viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M5 10a12 12 0 0 1 4-2.5"/><path d="M19 10a12 12 0 0 0-6-3"/><path d="M8 14a7 7 0 0 1 3-1.5"/><path d="M12 18v.5"/></symbol>
 <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5"/></symbol>
+<symbol id="i-max" viewBox="0 0 24 24"><path d="M4 9V4h5"/><path d="M20 9V4h-5"/><path d="M4 15v5h5"/><path d="M20 15v5h-5"/></symbol>
 </svg>
 
 <div id="app">
@@ -73,6 +113,7 @@
   <span class="lights"><i class="r"></i><i class="y"></i><i class="g"></i></span>
   <h1>ПБР · СМР</h1>
   <div id="syncBadge" class="badge">загрузка…</div>
+  <button id="whBtn" class="btn icon" title="Складской режим (крупно и контрастно)"><svg class="ic"><use href="#i-max"/></svg></button>
   <button id="themeBtn" class="btn icon" title="Тема: авто"><svg class="ic"><use href="#i-moon" id="themeIcon"/></svg></button>
   <button id="installBtn" class="btn icon hidden" title="Установить приложение"><svg class="ic"><use href="#i-install"/></svg></button>
   <button id="refreshBtn" class="btn icon" title="Обновить данные"><svg class="ic"><use href="#i-refresh"/></svg></button>
@@ -80,6 +121,12 @@
 <div id="installHint" class="hintbar hidden"><span>Установите как приложение: меню браузера ⋮ → «Установить приложение»</span><button id="hintOk" class="btn ghost">Понятно</button></div>
 
 <section id="view-search">
+  <div id="tiles">
+    <button class="tile" id="tileScan"><svg class="ic"><use href="#i-scan"/></svg><span>Скан</span></button>
+    <button class="tile" id="tileInv"><svg class="ic"><use href="#i-box"/></svg><span>Инвент.</span></button>
+    <button class="tile" id="tileHist"><svg class="ic"><use href="#i-history"/></svg><span>История</span></button>
+    <button class="tile" id="tileRefresh"><svg class="ic"><use href="#i-refresh"/></svg><span>Обновить</span></button>
+  </div>
   <nav id="tabs" class="seg"></nav>
   <div class="searchwrap">
     <span class="sicon"><svg class="ic"><use href="#i-search"/></svg></span>
@@ -163,7 +210,11 @@
       <button id="btnHistCsv" class="btn"><svg class="ic sm"><use href="#i-file"/></svg>Экспорт CSV</button>
     </div>
     <div id="histList"></div>
-    <div class="aboutline">ООО «ПБР» · склад СМР · приложение v16 · разработчик Байгулов К. А.</div>
+    <div class="aboutline">
+      ООО «ПБР» · склад СМР · приложение v17 · разработчик Байгулов К. А.<br>
+      <span class="link" id="tourRestart">Пройти обучение снова</span> ·
+      горячие клавиши: / — поиск, 1/2/3 — разделы, F5 — обновить, Esc — закрыть
+    </div>
   </div>
 </section>
 </main>
@@ -213,6 +264,19 @@
     <input id="pickerSearch" type="search" placeholder="Фильтр по списку…" autocomplete="off">
     <div id="pickerCount" class="pcount"></div>
     <div id="pickerList"></div>
+  </div>
+</div>
+
+<div id="tourMask" class="hidden">
+  <div id="tourRing"></div>
+  <div id="tourCard">
+    <div class="tstep" id="tourStep"></div>
+    <h3 id="tourTitle"></h3>
+    <p id="tourText"></p>
+    <div class="tbtns">
+      <button class="btn ghost" id="tourSkip">Пропустить</button>
+      <button class="btn primary" id="tourNext">Далее</button>
+    </div>
   </div>
 </div>
 
@@ -305,6 +369,21 @@ document.getElementById("themeBtn").onclick=function(){
   toast("Тема: "+(next==="auto"?"авто":next));
 };
 applyTheme();
+
+/* ========== СКЛАДСКОЙ РЕЖИМ (U2) ========== */
+function applyWh(){
+  var on=localStorage.getItem("smr_wh")==="1";
+  document.body.classList.toggle("wh-mode",on);
+  document.getElementById("whBtn").classList.toggle("on",on);
+  document.getElementById("whBtn").title=on?"Складской режим: вкл (нажмите чтобы выключить)":"Складской режим (крупно и контрастно)";
+}
+document.getElementById("whBtn").onclick=function(){
+  var on=localStorage.getItem("smr_wh")==="1";
+  localStorage.setItem("smr_wh",on?"0":"1");
+  applyWh();
+  toast(on?"Складской режим выключен":"Складской режим включён");
+};
+applyWh();
 
 /* ========== PWA ========== */
 if("serviceWorker" in navigator && window.isSecureContext){
@@ -799,6 +878,7 @@ function renderSyncBadge(offline){
   var sb=document.getElementById("sideBadge");
   if(sb)sb.textContent=t;
 }
+var tourStarted=false;
 async function loadData(){
   var skel=document.getElementById("tblSkel");
   if(!DATA)skel.classList.remove("hidden");
@@ -824,6 +904,10 @@ async function loadData(){
     document.getElementById("summary").textContent="Нет данных: сервер недоступен и кэш пуст";
     document.getElementById("emptyState").classList.remove("hidden");
     document.getElementById("emptyText").textContent="Нет данных. Проверьте соединение и нажмите обновить.";
+  }
+  if(!tourStarted&&!localStorage.getItem("smr_onboard_done")){
+    tourStarted=true;
+    setTimeout(tourStart,700);
   }
 }
 
@@ -1576,6 +1660,96 @@ document.getElementById("btnHistCsv").onclick=function(){
   var a=document.createElement("a");
   a.href=URL.createObjectURL(blob);a.download="scans.csv";a.click();
 };
+document.getElementById("tourRestart").onclick=function(){
+  localStorage.removeItem("smr_onboard_done");
+  tourStarted=true;
+  tourStart();
+};
+
+/* ========== ОНБОРДИНГ-ТУР (U1) ========== */
+var TOUR_STEPS=[
+  {view:"search",sel:"#q",title:"Мгновенный поиск",
+   text:"Введите название или бух. номер — подсказки появятся сразу. Поиск работает и без сети, по последним сохранённым данным."},
+  {view:"search",sel:"#tabs",title:"Два склада",
+   text:"Переключайтесь между листами СМР и Кладовая. Сортировка — тап по заголовку столбца, ширина столбцов — перетаскиванием края."},
+  {view:"scan",sel:"#btnStart",title:"QR-сканер",
+   text:"Включите камеру и сканируйте этикетки позиций и контейнеров. Вспышка и зум помогут в тёмном контейнере."},
+  {view:"scan",sel:"#invSwitch",title:"Инвентаризация",
+   text:"Включите режим, выберите контейнер и полку, сканируйте позиции. Черновик сохраняется автоматически — можно продолжить позже."},
+  {view:"search",sel:"#toolbar",title:"Тема, складской режим, обновление",
+   text:"Кнопка «рамка» — складской режим (крупно и контрастно). Кнопка темы — светлая/тёмная/авто. Значок обновления тянет свежие данные; бейдж показывает их время."}
+];
+var tourIdx=-1;
+function tourStart(){
+  tourIdx=0;
+  document.getElementById("tourMask").classList.remove("hidden");
+  tourShow();
+}
+function tourShow(){
+  if(tourIdx<0||tourIdx>=TOUR_STEPS.length){tourEnd();return;}
+  var st=TOUR_STEPS[tourIdx];
+  showView(st.view);
+  var el=document.querySelector(st.sel);
+  if(!el){tourNext();return;}
+  try{el.scrollIntoView({block:"center",behavior:"auto"});}catch(e){}
+  setTimeout(function(){
+    var r=el.getBoundingClientRect();
+    var ring=document.getElementById("tourRing");
+    ring.style.left=(r.left-6)+"px";
+    ring.style.top=(r.top-6)+"px";
+    ring.style.width=(r.width+12)+"px";
+    ring.style.height=(r.height+12)+"px";
+    var card=document.getElementById("tourCard");
+    document.getElementById("tourTitle").textContent=st.title;
+    document.getElementById("tourText").textContent=st.text;
+    document.getElementById("tourStep").textContent="ШАГ "+(tourIdx+1)+" ИЗ "+TOUR_STEPS.length;
+    document.getElementById("tourNext").textContent=(tourIdx===TOUR_STEPS.length-1)?"Готово":"Далее";
+    var ch=card.offsetHeight||150;
+    var top=r.bottom+14;
+    if(top+ch>window.innerHeight-10)top=Math.max(10,r.top-ch-14);
+    var left=Math.min(Math.max(10,r.left),Math.max(10,window.innerWidth-330));
+    card.style.top=top+"px";
+    card.style.left=left+"px";
+  },80);
+}
+function tourNext(){tourIdx++;if(tourIdx>=TOUR_STEPS.length)tourEnd();else tourShow();}
+function tourEnd(){
+  tourIdx=-1;
+  document.getElementById("tourMask").classList.add("hidden");
+  localStorage.setItem("smr_onboard_done","1");
+}
+document.getElementById("tourNext").onclick=tourNext;
+document.getElementById("tourSkip").onclick=tourEnd;
+window.addEventListener("resize",function(){if(tourIdx>=0)tourShow();});
+
+/* ========== ПЛИТКИ (U3) ========== */
+document.getElementById("tileScan").onclick=function(){showView("scan");};
+document.getElementById("tileInv").onclick=function(){
+  showView("scan");
+  if(!invMode)enterInvMode(true);
+};
+document.getElementById("tileHist").onclick=function(){showView("history");};
+document.getElementById("tileRefresh").onclick=function(){loadData();toast("Обновляю данные…");};
+
+/* ========== ГОРЯЧИЕ КЛАВИШИ (U7) ========== */
+document.addEventListener("keydown",function(e){
+  var t=e.target;
+  var typing=t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.tagName==="SELECT"||t.isContentEditable);
+  if(e.key==="Escape"){
+    hideSuggest();
+    ["cardOverlay","editOverlay","pickerOverlay"].forEach(function(id){
+      document.getElementById(id).classList.add("hidden");
+    });
+    if(tourIdx>=0)tourEnd();
+    return;
+  }
+  if(typing)return;
+  if(e.key==="/"){e.preventDefault();showView("search");document.getElementById("q").focus();}
+  else if(e.key==="F5"){e.preventDefault();loadData();toast("Обновляю данные…");}
+  else if(e.key==="1"){showView("search");}
+  else if(e.key==="2"){showView("scan");}
+  else if(e.key==="3"){showView("history");}
+});
 
 /* ========== NAV ========== */
 function showView(name){
