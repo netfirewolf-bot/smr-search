@@ -3,15 +3,35 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f6f7f9">
+<meta name="theme-color" content="#0f172a">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="stylesheet" href="styles.css">
-<title>СМР Поиск</title>
+<title>ПБР · СМР Склад</title>
 <script src="html5-qrcode.min.js"></script>
+<style>
+/* дополнения v16 поверх styles.css */
+.sidecredits{margin-top:12px;padding:10px 12px;font-size:10.5px;color:var(--text-3);line-height:1.5;border-top:1px solid var(--border)}
+.prog{margin:8px 0}
+.progtop{font-size:12px;color:var(--text-2);font-weight:600;margin-bottom:4px;font-variant-numeric:tabular-nums}
+.progbar{height:6px;border-radius:6px;background:var(--surface-3);overflow:hidden}
+.progbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--primary),var(--ok));border-radius:6px;transition:width .3s}
+.pill{display:inline-block;padding:2px 8px;border-radius:var(--r-pill);font-size:10.5px;font-weight:700;letter-spacing:.02em}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.bad{background:var(--bad-soft);color:var(--bad)}
+.stepbtn{border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);border-radius:var(--r-sm);width:34px;height:38px;font-size:16px;font-weight:700;cursor:pointer;flex:none}
+.stepbtn:active{background:var(--surface-3)}
+.tl{position:relative;padding-left:16px}
+.tl::before{content:"";position:absolute;left:5px;top:6px;bottom:6px;width:2px;background:var(--border);border-radius:2px}
+.tlitem{position:relative;margin-bottom:8px}
+.tlitem::before{content:"";position:absolute;left:-15px;top:14px;width:10px;height:10px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px var(--ok-soft)}
+.tlitem.bad::before{background:var(--bad);box-shadow:0 0 0 3px var(--bad-soft)}
+.aboutline{margin-top:14px;font-size:11px;color:var(--text-3);text-align:center}
+</style>
 </head>
 <body data-device="phone">
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
@@ -41,16 +61,17 @@
 
 <div id="app">
 <aside id="sidebar">
-  <div class="sidetitle">СМР Поиск</div>
+  <div class="sidetitle">ПБР · СМР Склад</div>
   <button class="sideitem active" data-view="search"><svg class="ic"><use href="#i-search"/></svg>Поиск</button>
   <button class="sideitem" data-view="scan"><svg class="ic"><use href="#i-scan"/></svg>Сканер</button>
   <button class="sideitem" data-view="history"><svg class="ic"><use href="#i-history"/></svg>История</button>
+  <div class="sidecredits">ООО «ПБР» — Предприятие буровых работ<br>Склад СМР<br>Разработчик: Байгулов К. А.</div>
   <div class="sidefoot" id="sideBadge"></div>
 </aside>
 <main>
 <header id="toolbar">
   <span class="lights"><i class="r"></i><i class="y"></i><i class="g"></i></span>
-  <h1>СМР Поиск</h1>
+  <h1>ПБР · СМР</h1>
   <div id="syncBadge" class="badge">загрузка…</div>
   <button id="themeBtn" class="btn icon" title="Тема: авто"><svg class="ic"><use href="#i-moon" id="themeIcon"/></svg></button>
   <button id="installBtn" class="btn icon hidden" title="Установить приложение"><svg class="ic"><use href="#i-install"/></svg></button>
@@ -122,6 +143,10 @@
         <button id="btnInvFinish" class="btn warn hidden"><svg class="ic sm"><use href="#i-check"/></svg>Завершить</button>
       </div>
       <div id="invPlaceLabel" class="invlabel hidden">Контейнер: не выбран</div>
+      <div id="invProgWrap" class="prog hidden">
+        <div class="progtop"><span id="invProgTxt"></span></div>
+        <div class="progbar"><i id="invProgFill"></i></div>
+      </div>
       <div id="invStats" class="invlabel hidden"></div>
       <div id="invList" class="invlist hidden"></div>
       <div id="invSummary" class="invsum hidden"></div>
@@ -138,6 +163,7 @@
       <button id="btnHistCsv" class="btn"><svg class="ic sm"><use href="#i-file"/></svg>Экспорт CSV</button>
     </div>
     <div id="histList"></div>
+    <div class="aboutline">ООО «ПБР» · склад СМР · приложение v16 · разработчик Байгулов К. А.</div>
   </div>
 </section>
 </main>
@@ -195,8 +221,8 @@
 <script>
 "use strict";
 /* ========== API (Google Apps Script) ========== */
-var API_BASE="https://script.google.com/macros/s/AKfycbw6OWtl-3aLFgQtb7pAQ3DNL0BgpXsRUsxhjTX3mNgK6smxgMLbNROymNFQrwjD454tLg/exec";
-var API_TOKEN="smr-K7m2Qx9Zp4";
+var API_BASE="__APPS_SCRIPT_URL__";
+var API_TOKEN="__APPS_SCRIPT_TOKEN__";
 function apiGet(action,params){
   var u=API_BASE+"?action="+encodeURIComponent(action)+"&token="+encodeURIComponent(API_TOKEN);
   if(params)Object.keys(params).forEach(function(k){if(params[k])u+="&"+k+"="+encodeURIComponent(params[k]);});
@@ -261,7 +287,7 @@ function applyDevice(){document.body.dataset.device=detectDevice();}
 window.addEventListener("resize",applyDevice);
 applyDevice();
 
-/* ========== ТЕМА (U5) ========== */
+/* ========== ТЕМА ========== */
 function applyTheme(){
   var t=localStorage.getItem("smr_theme")||"auto";
   if(t==="auto")document.documentElement.removeAttribute("data-theme");
@@ -1056,10 +1082,10 @@ function placeShelfOfItem(it){
   }
   return ["",""];
 }
-function statusClass(st){
-  if(st==="совпадает")return "st-ok";
-  if(st==="не найдена при инвентаризации"||st==="неизвестный код")return "st-bad";
-  return "st-warn";
+function pillClass(st){
+  if(st==="совпадает")return "ok";
+  if(st==="не найдена при инвентаризации"||st==="неизвестный код")return "bad";
+  return "warn";
 }
 function rowStatus(it){
   if(it.unknown)return "неизвестный код";
@@ -1070,6 +1096,37 @@ function rowStatus(it){
   if(ps[0]!==it.container)parts.push("другое место хранения");
   else if(it.shelf!=null&&ps[1]!==it.shelf)parts.push("другая полка");
   return parts.length?parts.join(" + "):"совпадает";
+}
+function scopeExpected(){
+  if(!invContainer||!DATA)return 0;
+  var n=0;
+  Object.keys(DATA.sheets).forEach(function(name){
+    var ix=IDX_BY_SHEET[name];
+    if(ix.place<0||ix.buh<0)return;
+    DATA.sheets[name].rows.forEach(function(r){
+      var ps=placeShelfOfRow(r,ix);
+      if(ps[0]!==invContainer)return;
+      if(invShelf!=null&&ps[1]!==invShelf)return;
+      var book=ix.fact>=0?(toNum(r[ix.fact])||0):0;
+      if(invHideZero&&Math.abs(book)<1e-9)return;
+      n++;
+    });
+  });
+  return n;
+}
+function scopeScanned(){
+  return invItems.filter(function(it){
+    return !it.unknown&&it.container===invContainer&&(invShelf==null||it.shelf===invShelf);
+  }).length;
+}
+function updateInvProgress(){
+  var wrap=document.getElementById("invProgWrap");
+  if(!invMode||!invContainer){wrap.classList.add("hidden");return;}
+  wrap.classList.remove("hidden");
+  var exp=scopeExpected(),sc=scopeScanned();
+  var pct=exp?Math.min(100,Math.round(sc*100/exp)):0;
+  document.getElementById("invProgTxt").textContent="Отсканировано "+sc+" из "+exp+" ("+pct+"%)";
+  document.getElementById("invProgFill").style.width=pct+"%";
 }
 function invStatsText(){
   var ok=0;
@@ -1084,6 +1141,7 @@ function renderInvList(){
   var stats=document.getElementById("invStats");
   if(!invMode)return;
   stats.textContent=invStatsText();
+  updateInvProgress();
   box.innerHTML="";
   if(!invItems.length){
     box.innerHTML='<div class="invrow"><div class="invname" style="color:var(--text-3);font-weight:500">Список пуст — сканируйте позиции контейнера</div></div>';
@@ -1094,10 +1152,19 @@ function renderInvList(){
       var d=document.createElement("div");
       d.className="invrow";
       var scopeTxt=multi?(" · ["+esc(it.container||"—")+(it.shelf?"/"+esc(it.shelf):"")+"]"):"";
-      var meta=esc(it.buh||"—")+" · учёт: "+esc(it.book)+scopeTxt+' · <span class="'+statusClass(st)+'">'+esc(st)+"</span>";
+      var meta=esc(it.buh||"—")+" · учёт: "+esc(it.book)+scopeTxt+' · <span class="pill '+pillClass(st)+'">'+esc(st)+"</span>";
       d.innerHTML='<div class="invname">'+esc(it.name)+'<span class="invmeta">'+meta+"</span></div>"+
+        '<button class="stepbtn" data-d="-1">−</button>'+
         '<input class="invnum" type="number" step="any" inputmode="decimal" value="'+esc(it.counted)+'">'+
+        '<button class="stepbtn" data-d="1">+</button>'+
         '<button class="invdel"><svg class="ic sm"><use href="#i-trash"/></svg></button>';
+      d.querySelectorAll(".stepbtn").forEach(function(b){
+        b.onclick=function(){
+          var dd=+this.dataset.d;
+          it.counted=Math.max(0,(toNum(it.counted)||0)+dd);
+          renderInvList();
+        };
+      });
       d.querySelector(".invnum").addEventListener("change",function(){
         it.counted=this.value===""?0:parseFloat(String(this.value).replace(",","."));
         renderInvList();
@@ -1115,9 +1182,10 @@ function updateInvHead(){
   document.getElementById("invShelfBtnLbl").textContent="Полка: "+(invShelf||"вся");
   document.getElementById("invZeroBtnLbl").textContent="Нули: "+(invHideZero?"скрыть":"показывать");
   document.getElementById("btnInvZero").classList.toggle("on",invHideZero);
+  updateInvProgress();
 }
 function showInvControls(on){
-  ["btnInvPlace","btnInvShelf","btnInvZero","btnInvVoice","btnInvPause","btnInvFinish","invPlaceLabel","invStats","invList"].forEach(function(id){
+  ["btnInvPlace","btnInvShelf","btnInvZero","btnInvVoice","btnInvPause","btnInvFinish","invPlaceLabel","invProgWrap","invStats","invList"].forEach(function(id){
     document.getElementById(id).classList.toggle("hidden",!on);
   });
   if(!on)document.getElementById("invSummary").classList.add("hidden");
@@ -1466,7 +1534,7 @@ function sendScan(raw,norm,hits,source){
     item:hits.length?String(hits[0].row[IDX_BY_SHEET[hits[0].sheet].name]):"",source:source});
 }
 
-/* ========== HISTORY ========== */
+/* ========== HISTORY (timeline) ========== */
 function getHistory(){try{return JSON.parse(localStorage.getItem(LS_SCANS)||"[]");}catch(e){return [];}}
 function pushHistory(rec){
   var h=getHistory();h.unshift(rec);if(h.length>200)h.length=200;
@@ -1477,15 +1545,21 @@ function renderHistory(){
   var box=document.getElementById("histList");box.innerHTML="";
   var h=getHistory();
   if(!h.length){box.innerHTML='<div class="hitem"><div class="hn">История пуста</div></div>';return;}
+  var wrap=document.createElement("div");
+  wrap.className="tl";
   h.forEach(function(rec){
     var d=document.createElement("div");
-    d.className="hitem"+(rec.found?"":" notfound");
+    d.className="tlitem"+(rec.found?"":" bad");
+    var inner=document.createElement("div");
+    inner.className="hitem"+(rec.found?"":" notfound");
     var dt=new Date(rec.t);
-    d.innerHTML='<div class="ht">'+dt.toLocaleString("ru-RU")+' · '+(rec.source==="manual"?"ручной ввод":"QR")+'</div>'+
+    inner.innerHTML='<div class="ht">'+dt.toLocaleString("ru-RU")+' · '+(rec.source==="manual"?"ручной ввод":"QR")+'</div>'+
       '<div class="hn">'+esc(rec.found?rec.name:"НЕ НАЙДЕНО: "+rec.raw)+'</div>'+
       '<div class="hc">код: '+esc(rec.raw)+' → '+esc(rec.norm||"—")+(rec.sheet?" · лист "+esc(rec.sheet):"")+"</div>";
-    box.appendChild(d);
+    d.appendChild(inner);
+    wrap.appendChild(d);
   });
+  box.appendChild(wrap);
 }
 document.getElementById("btnHistClear").onclick=function(){
   if(confirm("Очистить историю сканирований на телефоне?")){localStorage.removeItem(LS_SCANS);renderHistory();}
