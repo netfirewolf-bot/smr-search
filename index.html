@@ -195,8 +195,8 @@
 <script>
 "use strict";
 /* ========== API (Google Apps Script) ========== */
-var API_BASE="__APPS_SCRIPT_URL__";
-var API_TOKEN="__APPS_SCRIPT_TOKEN__";
+var API_BASE="https://script.google.com/macros/s/AKfycbw6OWtl-3aLFgQtb7pAQ3DNL0BgpXsRUsxhjTX3mNgK6smxgMLbNROymNFQrwjD454tLg/exec";
+var API_TOKEN="smr-K7m2Qx9Zp4";
 function apiGet(action,params){
   var u=API_BASE+"?action="+encodeURIComponent(action)+"&token="+encodeURIComponent(API_TOKEN);
   if(params)Object.keys(params).forEach(function(k){if(params[k])u+="&"+k+"="+encodeURIComponent(params[k]);});
