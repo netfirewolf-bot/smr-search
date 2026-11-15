@@ -1,4 +1,4 @@
-const CACHE_NAME = "smr-search-v3";
+const CACHE_NAME = "smr-search-v4";
 const SHELL = [
   "./",
   "./index.html",
@@ -22,14 +22,24 @@ self.addEventListener("activate", (e) => {
   );
 });
 
+function fetchWithTimeout(req, ms) {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error("timeout")), ms);
+    fetch(req).then(
+      (r) => { clearTimeout(t); resolve(r); },
+      (e) => { clearTimeout(t); reject(e); }
+    );
+  });
+}
+
 self.addEventListener("fetch", (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== "GET" || url.origin !== location.origin) return;
-  if (url.pathname.startsWith("/api/")) return;
 
+  // Открытие страницы: сеть не дольше 3 сек, иначе мгновенно из кэша
   if (e.request.mode === "navigate") {
     e.respondWith(
-      fetch(e.request)
+      fetchWithTimeout(e.request, 3000)
         .then((resp) => {
           if (resp && resp.ok) {
             const copy = resp.clone();
@@ -42,6 +52,7 @@ self.addEventListener("fetch", (e) => {
     return;
   }
 
+  // Файлы оболочки: кэш сразу, обновление в фоне
   e.respondWith(
     caches.match(e.request).then((cached) => {
       const fetched = fetch(e.request)
