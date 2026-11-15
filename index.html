@@ -3,244 +3,65 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#f5f5f7">
+<meta name="theme-color" content="#f6f7f9">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="styles.css">
 <title>СМР Поиск</title>
 <script src="html5-qrcode.min.js"></script>
-<style>
-:root{
-  --bg:#f5f5f7; --surface:rgba(255,255,255,.78); --solid:#ffffff;
-  --label:#1d1d1f; --label2:#6e6e73; --label3:#86868b;
-  --sep:rgba(60,60,67,.14); --fill:rgba(118,118,128,.12);
-  --accent:#007aff; --green:#34c759; --red:#ff3b30; --orange:#ff9500;
-  --radius:12px; --shadow:0 10px 30px rgba(0,0,0,.14);
-  --blur:saturate(180%) blur(20px);
-  --font:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-}
-@media (prefers-color-scheme: dark){
-  :root{
-    --bg:#1c1c1e; --surface:rgba(44,44,46,.78); --solid:#2c2c2e;
-    --label:#f5f5f7; --label2:#98989d; --label3:#86868b;
-    --sep:rgba(255,255,255,.12); --fill:rgba(118,118,128,.26);
-    --accent:#0a84ff; --green:#30d158; --red:#ff453a; --orange:#ff9f0a;
-    --shadow:0 10px 30px rgba(0,0,0,.55);
-  }
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0}
-body{font-family:var(--font);background:var(--bg);color:var(--label);font-size:15px;padding-bottom:70px}
-body[data-device="desktop"]{padding-bottom:0;font-size:14.5px}
-.hidden{display:none!important}
-#app{display:flex;min-height:100vh}
-aside#sidebar{display:none}
-body[data-device="desktop"] aside#sidebar{
-  display:flex;flex-direction:column;gap:2px;width:232px;padding:18px 10px;
-  position:sticky;top:0;height:100vh;background:var(--surface);
-  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border-right:1px solid var(--sep)}
-.sidetitle{font-size:15px;font-weight:700;padding:4px 12px 14px;color:var(--label)}
-.sideitem{display:flex;gap:10px;align-items:center;padding:8px 12px;border-radius:8px;border:0;
-  background:transparent;color:var(--label2);font-size:14px;cursor:pointer;width:100%;text-align:left;font-family:var(--font)}
-.sideitem .ico{font-size:16px;width:20px;text-align:center}
-.sideitem.active{background:rgba(0,122,255,.16);color:var(--accent);font-weight:600}
-.sidefoot{margin-top:auto;padding:10px 12px;font-size:11px;color:var(--label3)}
-header#toolbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;
-  padding:10px 16px;background:var(--surface);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
-  border-bottom:1px solid var(--sep)}
-.lights{display:none;gap:8px;margin-right:4px}
-.lights i{width:12px;height:12px;border-radius:50%}
-.lights .r{background:#ff5f57}.lights .y{background:#febc2e}.lights .g{background:#28c840}
-body[data-device="desktop"] .lights{display:flex}
-header#toolbar h1{font-size:16px;font-weight:700;margin:0;flex:1}
-.badge{font-size:11px;background:var(--fill);padding:4px 10px;border-radius:999px;color:var(--label2);
-  max-width:46%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.btn{border:0;border-radius:10px;padding:9px 14px;font-size:14px;cursor:pointer;background:var(--fill);
-  color:var(--label);font-family:var(--font)}
-.btn.primary{background:var(--accent);color:#fff}
-.btn.good{background:var(--green);color:#fff}
-.btn.warn{background:var(--orange);color:#fff}
-.btn.destructive{background:var(--red);color:#fff}
-.btn.icon{padding:6px 10px;border-radius:8px;font-size:16px}
-.btn.on{background:var(--accent);color:#fff}
-.btn.listening{background:var(--red);color:#fff}
-.btn:disabled{opacity:.5}
-nav#bottom{position:fixed;bottom:0;left:0;right:0;z-index:35;display:flex;
-  background:var(--surface);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
-  border-top:1px solid var(--sep);padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
-body[data-device="desktop"] nav#bottom{display:none}
-nav#bottom button{flex:1;border:0;background:transparent;color:var(--label3);font-size:11px;padding:4px 0;cursor:pointer;font-family:var(--font)}
-nav#bottom button .ico{display:block;font-size:22px;margin:0 auto 2px;filter:grayscale(1);opacity:.65}
-nav#bottom button.active{color:var(--accent)}
-nav#bottom button.active .ico{filter:none;opacity:1}
-main{flex:1;min-width:0}
-.seg{display:flex;background:var(--fill);border-radius:9px;padding:2px;gap:2px;margin:12px 16px 8px}
-.seg button{flex:1;border:0;background:transparent;border-radius:7px;padding:7px 0;font-size:14px;
-  color:var(--label);cursor:pointer;font-family:var(--font)}
-.seg button.active{background:var(--solid);box-shadow:0 1px 4px rgba(0,0,0,.14);font-weight:600}
-.searchwrap{position:relative;margin:0 16px 8px}
-.searchwrap .sicon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--label3);font-size:14px;pointer-events:none}
-#q{width:100%;padding:9px 12px 9px 32px;font-size:16px;border:0;border-radius:10px;background:var(--fill);
-  color:var(--label);font-family:var(--font);outline:none}
-body[data-device="desktop"] #q{font-size:14px}
-#q:focus{box-shadow:0 0 0 3px rgba(0,122,255,.35);background:var(--solid)}
-#suggest{position:absolute;left:0;right:0;top:calc(100% + 4px);background:var(--solid);border:1px solid var(--sep);
-  border-radius:12px;box-shadow:var(--shadow);max-height:55vh;overflow:auto;z-index:40;display:none}
-#suggest .sitem{padding:10px 12px;border-bottom:1px solid var(--sep);cursor:pointer}
-#suggest .sitem:last-child{border-bottom:0}
-#suggest .sname{font-size:14px}
-#suggest .smeta{font-size:12px;color:var(--label2);margin-top:2px}
-mark{background:rgba(255,204,0,.45);border-radius:3px;padding:0 1px}
-#chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 8px}
-.chip{border:0;border-radius:999px;padding:7px 12px;font-size:13px;background:var(--fill);color:var(--label);cursor:pointer;font-family:var(--font)}
-.chip.on{background:rgba(0,122,255,.16);color:var(--accent);font-weight:600}
-#summary{padding:0 16px 2px;font-size:13px;color:var(--label2)}
-#colhint{padding:0 16px 6px;font-size:11px;color:var(--label3)}
-.tablewrap{overflow:auto;margin:0 16px 16px;background:var(--solid);border:1px solid var(--sep);
-  border-radius:12px;max-height:56vh}
-body[data-device="desktop"] .tablewrap{max-height:calc(100vh - 260px)}
-table{border-collapse:separate;border-spacing:0;width:100%;table-layout:fixed;font-size:13px}
-thead th{position:sticky;top:0;background:var(--solid);color:var(--label2);font-size:11px;
-  text-transform:uppercase;letter-spacing:.03em;padding:8px 10px;text-align:left;border-bottom:1px solid var(--sep);
-  cursor:pointer;user-select:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;z-index:2}
-tbody td{padding:8px 10px;border-bottom:1px solid var(--sep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-tbody tr:last-child td{border-bottom:0}
-body[data-device="desktop"] tbody tr:hover td{background:rgba(0,122,255,.06)}
-tbody tr:active td{background:rgba(0,122,255,.10)}
-.colres{position:absolute;top:0;right:-6px;width:14px;height:100%;cursor:col-resize;touch-action:none;z-index:6}
-.colres:active{background:rgba(0,122,255,.35)}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.32);z-index:60;display:flex;align-items:flex-end;justify-content:center;
-  backdrop-filter:blur(2px);-webkit-backdrop-filter:blur(2px)}
-@media (min-width:700px){.overlay{align-items:center}}
-.sheet{background:var(--solid);width:100%;border-radius:18px 18px 0 0;padding:18px 18px calc(22px + env(safe-area-inset-bottom));
-  max-height:86vh;overflow:auto;position:relative;box-shadow:var(--shadow)}
-@media (min-width:700px){.sheet{border-radius:14px;max-width:560px}}
-.closebtn{position:absolute;top:12px;right:12px;border:0;background:var(--fill);color:var(--label2);
-  border-radius:8px;font-size:14px;padding:6px 10px;cursor:pointer}
-.sheet h2{font-size:16px;margin:0 40px 10px 0;line-height:1.35}
-.groupbox{background:var(--fill);border-radius:10px;padding:10px 12px;margin:10px 0}
-.groupbox .gtitle{font-size:11px;color:var(--label2);font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px}
-.groupbox .gval{font-size:17px;font-weight:700;color:var(--label)}
-.kv{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--sep);font-size:14px}
-.kv:last-of-type{border-bottom:0}
-.kv .k{color:var(--label2);flex:0 0 45%}
-.kv .v{flex:1;font-weight:600;white-space:normal}
-.diffbad{color:var(--red)} .diffgood{color:var(--green)}
-.cardbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
-.cardbtns .btn{flex:1;min-width:120px;padding:11px 0}
-.elabel{font-size:12px;color:var(--label2);margin:10px 0 4px}
-.field input{width:100%;padding:10px 12px;border:0;border-radius:10px;background:var(--fill);color:var(--label);font-size:16px;font-family:var(--font);outline:none}
-.field input:focus{box-shadow:0 0 0 3px rgba(0,122,255,.35);background:var(--solid)}
-.pickrow{display:flex;gap:6px}
-.pickrow input{flex:1}
-.estatus{font-size:12px;color:var(--red);margin-top:10px;min-height:16px}
-#pickerSearch{width:100%;padding:10px 12px;border:0;border-radius:10px;background:var(--fill);color:var(--label);font-size:15px;margin:8px 0 4px;font-family:var(--font);outline:none}
-.pcount{font-size:11px;color:var(--label3);margin:2px 0 6px}
-#pickerList{overflow:auto;max-height:52vh;border:1px solid var(--sep);border-radius:10px;background:var(--solid)}
-.pitem{padding:11px 12px;border-bottom:1px solid var(--sep);font-size:14px;cursor:pointer}
-.pitem:last-child{border-bottom:0}
-.pitem:active{background:rgba(0,122,255,.10)}
-#toast{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:var(--surface);
-  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--sep);border-radius:14px;
-  box-shadow:var(--shadow);padding:10px 16px;font-size:13px;color:var(--label);opacity:0;pointer-events:none;
-  transition:.3s;z-index:90;max-width:90%;text-align:center}
-#toast.show{opacity:1}
-@media (min-width:980px){#toast{left:auto;right:16px;transform:none}}
-.hintbar{display:flex;gap:8px;align-items:center;background:rgba(255,204,0,.18);color:var(--label);padding:8px 16px;font-size:12px}
-.hintbar .btn{padding:6px 10px;font-size:12px}
-.scanbox{padding:12px 16px}
-#readerWrap{position:relative;border-radius:14px;overflow:hidden;background:#000;min-height:240px}
-body[data-device="desktop"] #readerWrap{max-width:640px;margin:0 auto}
-#reader{width:100%}
-#scanFrame{position:absolute;left:8%;right:8%;top:16%;bottom:16%;pointer-events:none;border:2px dashed rgba(255,255,255,.7);border-radius:14px}
-#scanFlash{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .35s}
-#scanFlash.ok{background:rgba(48,209,88,.4);opacity:1}
-#scanFlash.bad{background:rgba(255,69,58,.4);opacity:1}
-#scanStats{font-size:12px;color:var(--label2);margin:8px 2px}
-#sessionTitle{font-size:12px;font-weight:700;color:var(--label2);margin:8px 2px 4px}
-#sessionList{margin:0 0 8px}
-.schip{display:flex;gap:8px;align-items:center;background:var(--solid);border:1px solid var(--sep);border-radius:10px;
-  padding:8px 10px;margin-bottom:6px;font-size:13px;cursor:pointer}
-.schip .st{color:var(--label3);font-size:11px;flex-shrink:0}
-.schip .sn{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.schip.notfound .sn{color:var(--red)}
-.schip.empty{cursor:default;background:transparent;border-color:transparent}
-.schip.empty .sn{color:var(--label3)}
-#scanControls{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0}
-#zoomWrap{width:100%;display:flex;align-items:center;gap:6px;font-size:12px;color:var(--label2);margin:6px 0}
-#zoom{flex:1}
-.zpreset{border:0;border-radius:8px;background:var(--fill);color:var(--label);padding:8px 10px;font-size:12px;cursor:pointer}
-.zpreset.on{background:var(--accent);color:#fff}
-#scanStatus{font-size:13px;color:var(--label2);margin:6px 0}
-.manual{display:flex;gap:8px;margin:10px 0}
-.manual input{flex:1;padding:10px 12px;border:0;border-radius:10px;background:var(--fill);color:var(--label);font-size:15px;font-family:var(--font);outline:none}
-#scanResult .sheet{position:static;max-height:none;border-radius:14px;margin-top:10px;box-shadow:var(--shadow)}
-.invbox{margin:12px 0 4px;border-top:1px solid var(--sep);padding-top:12px}
-.invhead{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-.invtitle{font-size:14px;font-weight:600}
-.switch{position:relative;width:51px;height:31px;flex-shrink:0}
-.switch input{opacity:0;width:0;height:0}
-.switch .sl{position:absolute;inset:0;background:var(--fill);border-radius:16px;transition:.25s;cursor:pointer}
-.switch .sl:before{content:"";position:absolute;width:27px;height:27px;left:2px;top:2px;background:#fff;border-radius:50%;
-  box-shadow:0 2px 6px rgba(0,0,0,.25);transition:.25s}
-.switch input:checked + .sl{background:var(--green)}
-.switch input:checked + .sl:before{transform:translateX(20px)}
-.invlabel{font-size:12px;color:var(--label2);margin:8px 0}
-.invlist{max-height:40vh;overflow:auto;background:var(--solid);border:1px solid var(--sep);border-radius:10px}
-.invrow{display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--sep)}
-.invrow:last-child{border-bottom:0}
-.invname{flex:1;font-size:13px;line-height:1.3}
-.invmeta{display:block;font-size:11px;margin-top:2px;color:var(--label2)}
-.invnum{width:84px;padding:8px;border:0;border-radius:8px;background:var(--fill);color:var(--label);font-size:14px;font-family:var(--font);outline:none}
-.invdel{border:0;background:rgba(255,59,48,.14);color:var(--red);border-radius:8px;padding:8px 10px;cursor:pointer}
-.invsum{background:var(--solid);border:1px solid var(--sep);border-radius:12px;padding:12px;margin-top:10px;font-size:14px}
-.invsum .cardbtns{margin-top:10px}
-.st-ok{color:var(--green)} .st-bad{color:var(--red)} .st-warn{color:var(--orange)}
-.cbox{background:rgba(52,199,89,.12);border:1px solid rgba(52,199,89,.35);border-radius:12px;padding:12px;margin:10px 0}
-.cbox .ctitle{font-size:11px;color:var(--green);font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin-bottom:4px}
-.cbox .cname{font-size:18px;font-weight:700}
-.cbox .cmeta{font-size:12px;color:var(--label2);margin-top:4px}
-.clist{background:var(--solid);border:1px solid var(--sep);border-radius:10px;max-height:40vh;overflow:auto;margin-top:10px}
-.crow{display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--sep);cursor:pointer}
-.crow:last-child{border-bottom:0}
-.crow.item:active{background:rgba(0,122,255,.10)}
-.crow.ghead{background:var(--fill);cursor:default;font-weight:700;font-size:12px;color:var(--label2)}
-.cname2{flex:1;font-size:13px;line-height:1.3}
-.cmeta2{display:block;font-size:11px;margin-top:2px;color:var(--label2)}
-.histwrap{padding:12px 16px}
-.histbtns{display:flex;gap:8px;margin-bottom:10px}
-.hitem{background:var(--solid);border:1px solid var(--sep);border-radius:12px;padding:10px 12px;margin-bottom:8px}
-.hitem .ht{font-size:11px;color:var(--label3)}
-.hitem .hn{font-size:14px;font-weight:600;margin-top:2px}
-.hitem .hc{font-size:12px;color:var(--label2);margin-top:2px}
-.hitem.notfound .hn{color:var(--red)}
-</style>
 </head>
 <body data-device="phone">
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+<symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+<symbol id="i-scan" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+<symbol id="i-history" viewBox="0 0 24 24"><rect x="7" y="3" width="10" height="4" rx="1"/><path d="M7 5H5v16h14V5h-2"/><path d="M9 12h6M9 16h6"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></symbol>
+<symbol id="i-install" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+<symbol id="i-flash" viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></symbol>
+<symbol id="i-flip" viewBox="0 0 24 24"><path d="M4 9h13l-3.5-3.5"/><path d="M20 15H7l3.5 3.5"/></symbol>
+<symbol id="i-vol" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></symbol>
+<symbol id="i-volx" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="m16 9 6 6"/><path d="m22 9-6 6"/></symbol>
+<symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="10" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3"/></symbol>
+<symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5v14M15 5v14"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
+<symbol id="i-chev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+<symbol id="i-box" viewBox="0 0 24 24"><path d="m12 2 9 5v10l-9 5-9-5V7z"/><path d="M3 7l9 5 9-5"/><path d="M12 12v10"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24"><path d="M4 20h4L20 8l-4-4L4 16z"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 14h10l1-14"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14A8 8 0 1 1 10 4a7 7 0 0 0 10 10z"/></symbol>
+<symbol id="i-wifioff" viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M5 10a12 12 0 0 1 4-2.5"/><path d="M19 10a12 12 0 0 0-6-3"/><path d="M8 14a7 7 0 0 1 3-1.5"/><path d="M12 18v.5"/></symbol>
+<symbol id="i-file" viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5"/></symbol>
+</svg>
+
 <div id="app">
 <aside id="sidebar">
   <div class="sidetitle">СМР Поиск</div>
-  <button class="sideitem active" data-view="search"><span class="ico">&#128269;</span>Поиск</button>
-  <button class="sideitem" data-view="scan"><span class="ico">&#128247;</span>Сканер</button>
-  <button class="sideitem" data-view="history"><span class="ico">&#128203;</span>История</button>
+  <button class="sideitem active" data-view="search"><svg class="ic"><use href="#i-search"/></svg>Поиск</button>
+  <button class="sideitem" data-view="scan"><svg class="ic"><use href="#i-scan"/></svg>Сканер</button>
+  <button class="sideitem" data-view="history"><svg class="ic"><use href="#i-history"/></svg>История</button>
   <div class="sidefoot" id="sideBadge"></div>
 </aside>
 <main>
 <header id="toolbar">
   <span class="lights"><i class="r"></i><i class="y"></i><i class="g"></i></span>
   <h1>СМР Поиск</h1>
-  <div id="syncBadge" class="badge">загрузка...</div>
-  <button id="installBtn" class="btn icon hidden" title="Установить приложение">&#128242;</button>
-  <button id="refreshBtn" class="btn icon" title="Обновить данные">&#10227;</button>
+  <div id="syncBadge" class="badge">загрузка…</div>
+  <button id="themeBtn" class="btn icon" title="Тема: авто"><svg class="ic"><use href="#i-moon" id="themeIcon"/></svg></button>
+  <button id="installBtn" class="btn icon hidden" title="Установить приложение"><svg class="ic"><use href="#i-install"/></svg></button>
+  <button id="refreshBtn" class="btn icon" title="Обновить данные"><svg class="ic"><use href="#i-refresh"/></svg></button>
 </header>
-<div id="installHint" class="hintbar hidden"><span>Установите как приложение: меню браузера &#8942; → «Установить приложение»</span><button id="hintOk" class="btn">Понятно</button></div>
+<div id="installHint" class="hintbar hidden"><span>Установите как приложение: меню браузера ⋮ → «Установить приложение»</span><button id="hintOk" class="btn ghost">Понятно</button></div>
 
 <section id="view-search">
   <nav id="tabs" class="seg"></nav>
   <div class="searchwrap">
-    <span class="sicon">&#128269;</span>
+    <span class="sicon"><svg class="ic"><use href="#i-search"/></svg></span>
     <input id="q" type="search" placeholder="Поиск: название или бух. номер" autocomplete="off" enterkeyhint="search">
     <div id="suggest"></div>
   </div>
@@ -248,6 +69,14 @@ body[data-device="desktop"] #readerWrap{max-width:640px;margin:0 auto}
   <div id="summary"></div>
   <div id="colhint">Ширина столбцов: тяните правый край заголовка; двойной клик/тап — сброс</div>
   <div class="tablewrap">
+    <div id="tblSkel" class="hidden">
+      <div class="skelrow"><div class="skel" style="height:12px;flex:4"></div><div class="skel" style="height:12px;flex:1"></div><div class="skel" style="height:12px;flex:1"></div><div class="skel" style="height:12px;flex:2"></div></div>
+      <div class="skelrow"><div class="skel" style="height:12px;flex:4"></div><div class="skel" style="height:12px;flex:1"></div><div class="skel" style="height:12px;flex:1"></div><div class="skel" style="height:12px;flex:2"></div></div>
+      <div class="skelrow"><div class="skel" style="height:12px;flex:4"></div><div class="skel" style="height:12px;flex:1"></div><div class="skel" style="height:12px;flex:1"></div><div class="skel" style="height:12px;flex:2"></div></div>
+      <div class="skelrow"><div class="skel" style="height:12px;flex:4"></div><div class="skel" style="height:12px;flex:1"></div><div class="skel" style="height:12px;flex:1"></div><div class="skel" style="height:12px;flex:2"></div></div>
+      <div class="skelrow"><div class="skel" style="height:12px;flex:4"></div><div class="skel" style="height:12px;flex:1"></div><div class="skel" style="height:12px;flex:1"></div><div class="skel" style="height:12px;flex:2"></div></div>
+    </div>
+    <div id="emptyState" class="empty hidden"><svg class="ic lg"><use href="#i-search"/></svg><div id="emptyText">Ничего не найдено</div></div>
     <table id="tbl"><thead></thead><tbody></tbody></table>
   </div>
 </section>
@@ -256,18 +85,18 @@ body[data-device="desktop"] #readerWrap{max-width:640px;margin:0 auto}
   <div class="scanbox">
     <div id="readerWrap">
       <div id="reader"></div>
-      <div id="scanFrame"></div>
+      <div class="hud"><i></i><i></i><i></i><i></i><span class="line"></span></div>
       <div id="scanFlash"></div>
     </div>
     <div id="scanStats">Сканирований: <b id="scanCount">0</b> · найдено: <b id="scanFound">0</b></div>
     <div id="sessionTitle" class="hidden">Последние сканы сессии</div>
     <div id="sessionList"></div>
     <div id="scanControls">
-      <button id="btnStart" class="btn primary">Включить камеру</button>
-      <button id="btnStop" class="btn hidden">Стоп</button>
-      <button id="btnTorch" class="btn hidden">Вспышка</button>
-      <button id="btnFlip" class="btn hidden">Смена камеры</button>
-      <button id="btnSound" class="btn">Звук: вкл</button>
+      <button id="btnStart" class="btn primary"><svg class="ic sm"><use href="#i-scan"/></svg>Включить камеру</button>
+      <button id="btnStop" class="btn hidden"><svg class="ic sm"><use href="#i-pause"/></svg>Стоп</button>
+      <button id="btnTorch" class="btn hidden"><svg class="ic sm"><use href="#i-flash"/></svg>Вспышка</button>
+      <button id="btnFlip" class="btn hidden"><svg class="ic sm"><use href="#i-flip"/></svg>Смена камеры</button>
+      <button id="btnSound" class="btn"><svg class="ic sm" id="soundIco"><use href="#i-vol"/></svg><span id="soundLbl">Звук: вкл</span></button>
     </div>
     <div id="zoomWrap" class="hidden">
       <button class="zpreset" data-z="1">1x</button>
@@ -285,12 +114,12 @@ body[data-device="desktop"] #readerWrap{max-width:640px;margin:0 auto}
       <div class="invhead">
         <label class="switch"><input type="checkbox" id="invSwitch"><span class="sl"></span></label>
         <span class="invtitle">Инвентаризация</span>
-        <button id="btnInvPlace" class="btn hidden">&#9662; Контейнер</button>
-        <button id="btnInvShelf" class="btn hidden">&#9662; Полка: вся</button>
-        <button id="btnInvZero" class="btn hidden">Нули: показывать</button>
-        <button id="btnInvVoice" class="btn hidden">&#127908; Голос</button>
-        <button id="btnInvPause" class="btn hidden">Пауза</button>
-        <button id="btnInvFinish" class="btn warn hidden">Завершить</button>
+        <button id="btnInvPlace" class="btn ghost hidden"><svg class="ic sm"><use href="#i-box"/></svg><span id="invPlaceBtnLbl">Контейнер</span></button>
+        <button id="btnInvShelf" class="btn ghost hidden"><svg class="ic sm"><use href="#i-chev"/></svg><span id="invShelfBtnLbl">Полка: вся</span></button>
+        <button id="btnInvZero" class="btn ghost hidden"><span id="invZeroBtnLbl">Нули: показывать</span></button>
+        <button id="btnInvVoice" class="btn ghost hidden"><svg class="ic sm"><use href="#i-mic"/></svg><span id="voiceLbl">Голос</span></button>
+        <button id="btnInvPause" class="btn ghost hidden"><svg class="ic sm"><use href="#i-pause"/></svg>Пауза</button>
+        <button id="btnInvFinish" class="btn warn hidden"><svg class="ic sm"><use href="#i-check"/></svg>Завершить</button>
       </div>
       <div id="invPlaceLabel" class="invlabel hidden">Контейнер: не выбран</div>
       <div id="invStats" class="invlabel hidden"></div>
@@ -305,8 +134,8 @@ body[data-device="desktop"] #readerWrap{max-width:640px;margin:0 auto}
 <section id="view-history" class="hidden">
   <div class="histwrap">
     <div class="histbtns">
-      <button id="btnHistClear" class="btn">Очистить</button>
-      <button id="btnHistCsv" class="btn">Экспорт CSV</button>
+      <button id="btnHistClear" class="btn ghost"><svg class="ic sm"><use href="#i-trash"/></svg>Очистить</button>
+      <button id="btnHistCsv" class="btn"><svg class="ic sm"><use href="#i-file"/></svg>Экспорт CSV</button>
     </div>
     <div id="histList"></div>
   </div>
@@ -315,37 +144,37 @@ body[data-device="desktop"] #readerWrap{max-width:640px;margin:0 auto}
 </div>
 
 <nav id="bottom">
-  <button id="navSearch" class="active"><span class="ico">&#128269;</span>Поиск</button>
-  <button id="navScan"><span class="ico">&#128247;</span>Сканер</button>
-  <button id="navHist"><span class="ico">&#128203;</span>История</button>
+  <button id="navSearch" class="active"><svg class="ic"><use href="#i-search"/></svg>Поиск</button>
+  <button id="navScan"><svg class="ic"><use href="#i-scan"/></svg>Сканер</button>
+  <button id="navHist"><svg class="ic"><use href="#i-history"/></svg>История</button>
 </nav>
 
 <div id="cardOverlay" class="overlay hidden">
   <div class="sheet">
-    <button class="closebtn" id="cardClose">&#10005;</button>
+    <button class="closebtn" id="cardClose"><svg class="ic sm"><use href="#i-x"/></svg></button>
     <div id="cardBody"></div>
   </div>
 </div>
 
 <div id="editOverlay" class="overlay hidden">
   <div class="sheet">
-    <button class="closebtn" id="editClose">&#10005;</button>
+    <button class="closebtn" id="editClose"><svg class="ic sm"><use href="#i-x"/></svg></button>
     <h2 id="editTitle">Изменить позицию</h2>
     <div class="elabel">Факт (число)</div>
     <div class="field"><input id="editFact" type="number" step="any" inputmode="decimal" placeholder="оставьте пустым, чтобы не менять"></div>
     <div class="elabel">Контейнер / площадка</div>
     <div class="pickrow field">
       <input id="editPlace" type="text" maxlength="100" autocomplete="off">
-      <button id="btnPickPlace" class="btn" type="button">&#9662; Список</button>
+      <button id="btnPickPlace" class="btn ghost" type="button"><svg class="ic sm"><use href="#i-chev"/></svg>Список</button>
     </div>
     <div class="elabel">Полка / место</div>
     <div class="pickrow field">
       <input id="editShelf" type="text" maxlength="100" autocomplete="off">
-      <button id="btnPickShelf" class="btn" type="button">&#9662; Список</button>
+      <button id="btnPickShelf" class="btn ghost" type="button"><svg class="ic sm"><use href="#i-chev"/></svg>Список</button>
     </div>
     <div class="cardbtns">
       <button id="editSave" class="btn warn">Сохранить</button>
-      <button id="editCancel" class="btn">Отмена</button>
+      <button id="editCancel" class="btn ghost">Отмена</button>
     </div>
     <div id="editStatus" class="estatus"></div>
   </div>
@@ -353,9 +182,9 @@ body[data-device="desktop"] #readerWrap{max-width:640px;margin:0 auto}
 
 <div id="pickerOverlay" class="overlay hidden">
   <div class="sheet">
-    <button class="closebtn" id="pickerClose">&#10005;</button>
+    <button class="closebtn" id="pickerClose"><svg class="ic sm"><use href="#i-x"/></svg></button>
     <h2 id="pickerTitle">Выбор значения</h2>
-    <input id="pickerSearch" type="search" placeholder="Фильтр по списку..." autocomplete="off">
+    <input id="pickerSearch" type="search" placeholder="Фильтр по списку…" autocomplete="off">
     <div id="pickerCount" class="pcount"></div>
     <div id="pickerList"></div>
   </div>
@@ -366,8 +195,8 @@ body[data-device="desktop"] #readerWrap{max-width:640px;margin:0 auto}
 <script>
 "use strict";
 /* ========== API (Google Apps Script) ========== */
-var API_BASE="https://script.google.com/macros/s/AKfycbw6OWtl-3aLFgQtb7pAQ3DNL0BgpXsRUsxhjTX3mNgK6smxgMLbNROymNFQrwjD454tLg/exec";
-var API_TOKEN="smr-K7m2Qx9Zp4";
+var API_BASE="__APPS_SCRIPT_URL__";
+var API_TOKEN="__APPS_SCRIPT_TOKEN__";
 function apiGet(action,params){
   var u=API_BASE+"?action="+encodeURIComponent(action)+"&token="+encodeURIComponent(API_TOKEN);
   if(params)Object.keys(params).forEach(function(k){if(params[k])u+="&"+k+"="+encodeURIComponent(params[k]);});
@@ -431,6 +260,25 @@ function detectDevice(){
 function applyDevice(){document.body.dataset.device=detectDevice();}
 window.addEventListener("resize",applyDevice);
 applyDevice();
+
+/* ========== ТЕМА (U5) ========== */
+function applyTheme(){
+  var t=localStorage.getItem("smr_theme")||"auto";
+  if(t==="auto")document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme",t);
+  var dark=(t==="dark")||(t==="auto"&&window.matchMedia&&window.matchMedia("(prefers-color-scheme: dark)").matches);
+  document.getElementById("themeIcon").setAttribute("href",dark?"#i-sun":"#i-moon");
+  document.getElementById("themeBtn").title="Тема: "+(t==="auto"?"авто":t);
+}
+document.getElementById("themeBtn").onclick=function(){
+  var order=["auto","light","dark"];
+  var cur=localStorage.getItem("smr_theme")||"auto";
+  var next=order[(order.indexOf(cur)+1)%order.length];
+  localStorage.setItem("smr_theme",next);
+  applyTheme();
+  toast("Тема: "+(next==="auto"?"авто":next));
+};
+applyTheme();
 
 /* ========== PWA ========== */
 if("serviceWorker" in navigator && window.isSecureContext){
@@ -680,6 +528,14 @@ function renderTable(){
   var txt="Найдено: "+viewList.length+" из "+s.rows.length;
   if(viewList.length>limit)txt+=" (показаны первые "+limit+")";
   sum.textContent=txt;
+  var empty=document.getElementById("emptyState");
+  if(viewList.length===0){
+    document.getElementById("emptyText").textContent=
+      (document.getElementById("q").value.trim()?"Ничего не найдено по запросу":"В этом листе пока нет данных");
+    empty.classList.remove("hidden");
+  }else{
+    empty.classList.add("hidden");
+  }
 }
 
 /* ========== PICKERS ========== */
@@ -729,13 +585,13 @@ function renderPickerList(filter){
   }
   if(items.length>limit){
     var m=document.createElement("div");
-    m.className="pitem";m.style.color="var(--label3)";
+    m.className="pitem";m.style.color="var(--text-3)";
     m.textContent="… показаны первые "+limit+", уточните фильтр";
     box.appendChild(m);
   }
   if(items.length===0){
     var e2=document.createElement("div");
-    e2.className="pitem";e2.style.color="var(--label3)";
+    e2.className="pitem";e2.style.color="var(--text-3)";
     e2.textContent="Ничего не найдено — можно вписать своё значение в поле";
     box.appendChild(e2);
   }
@@ -771,7 +627,7 @@ function openContainerCard(containerName){
     '<div class="cname">'+esc(containerName)+'</div>'+
     '<div class="cmeta">Позиций в учёте: '+items.length+'</div></div>';
   if(!items.length){
-    html+='<div class="kv"><div class="v" style="color:var(--label3)">По учёту в этом контейнере позиций нет</div></div>';
+    html+='<div class="kv"><div class="v" style="color:var(--text-3)">По учёту в этом контейнере позиций нет</div></div>';
   }else{
     html+='<div class="clist">';
     var lastG=null;
@@ -918,6 +774,8 @@ function renderSyncBadge(offline){
   if(sb)sb.textContent=t;
 }
 async function loadData(){
+  var skel=document.getElementById("tblSkel");
+  if(!DATA)skel.classList.remove("hidden");
   try{
     var r=await apiGet("data");
     if(!r.ok)throw new Error("http "+r.status);
@@ -932,11 +790,14 @@ async function loadData(){
     }
     renderSyncBadge(true);
   }
+  skel.classList.add("hidden");
   if(DATA){
     if(!curSheet||!DATA.sheets[curSheet])curSheet=Object.keys(DATA.sheets)[0];
     computeAllIdx();renderTabs();renderChips();renderTable();buildEditLists();
   }else{
     document.getElementById("summary").textContent="Нет данных: сервер недоступен и кэш пуст";
+    document.getElementById("emptyState").classList.remove("hidden");
+    document.getElementById("emptyText").textContent="Нет данных. Проверьте соединение и нажмите обновить.";
   }
 }
 
@@ -1007,7 +868,7 @@ function setupTorchZoom(){
 async function startCamera(){
   if(typeof Html5Qrcode==="undefined"){scanStatus("Библиотека сканера не загружена.");return;}
   if(scanning)return;
-  scanStatus("Включаю камеру...");
+  scanStatus("Включаю камеру…");
   try{
     scanner=new Html5Qrcode("reader",{verbose:false});
     await scanner.start({facingMode:facing},{fps:10,qrbox:{width:240,height:160}},
@@ -1054,12 +915,16 @@ document.getElementById("btnFlip").onclick=async function(){
   facing=(facing==="environment")?"user":"environment";
   if(scanning){await stopCamera();await startCamera();}
 };
+function syncSoundBtn(){
+  document.getElementById("soundLbl").textContent="Звук: "+(soundOn?"вкл":"выкл");
+  document.getElementById("soundIco").querySelector("use").setAttribute("href",soundOn?"#i-vol":"#i-volx");
+}
 document.getElementById("btnSound").onclick=function(){
   soundOn=!soundOn;
   localStorage.setItem("smr_sound",soundOn?"1":"0");
-  this.textContent="Звук: "+(soundOn?"вкл":"выкл");
+  syncSoundBtn();
 };
-document.getElementById("btnSound").textContent="Звук: "+(soundOn?"вкл":"выкл");
+syncSoundBtn();
 document.getElementById("zoom").oninput=function(){applyZoom(parseFloat(this.value));};
 document.querySelectorAll(".zpreset").forEach(function(b){
   b.onclick=function(){applyZoom(parseFloat(b.dataset.z));};
@@ -1221,7 +1086,7 @@ function renderInvList(){
   stats.textContent=invStatsText();
   box.innerHTML="";
   if(!invItems.length){
-    box.innerHTML='<div class="invrow"><div class="invname" style="color:var(--label3)">Список пуст — сканируйте позиции контейнера</div></div>';
+    box.innerHTML='<div class="invrow"><div class="invname" style="color:var(--text-3);font-weight:500">Список пуст — сканируйте позиции контейнера</div></div>';
   }else{
     var multi=invScopes().length>1;
     invItems.forEach(function(it,idx){
@@ -1229,10 +1094,10 @@ function renderInvList(){
       var d=document.createElement("div");
       d.className="invrow";
       var scopeTxt=multi?(" · ["+esc(it.container||"—")+(it.shelf?"/"+esc(it.shelf):"")+"]"):"";
-      var meta=esc(it.buh||"—")+" · учёт: "+esc(it.book)+scopeTxt+" · <span class='"+statusClass(st)+"'>"+esc(st)+"</span>";
+      var meta=esc(it.buh||"—")+" · учёт: "+esc(it.book)+scopeTxt+' · <span class="'+statusClass(st)+'">'+esc(st)+"</span>";
       d.innerHTML='<div class="invname">'+esc(it.name)+'<span class="invmeta">'+meta+"</span></div>"+
         '<input class="invnum" type="number" step="any" inputmode="decimal" value="'+esc(it.counted)+'">'+
-        '<button class="invdel">&#10005;</button>';
+        '<button class="invdel"><svg class="ic sm"><use href="#i-trash"/></svg></button>';
       d.querySelector(".invnum").addEventListener("change",function(){
         it.counted=this.value===""?0:parseFloat(String(this.value).replace(",","."));
         renderInvList();
@@ -1246,8 +1111,9 @@ function renderInvList(){
 function updateInvHead(){
   document.getElementById("invPlaceLabel").textContent=
     "Контейнер: "+(invContainer||"не выбран")+(invContainer?(" · Полка: "+(invShelf||"вся")):"");
-  document.getElementById("btnInvShelf").textContent="▾ Полка: "+(invShelf||"вся");
-  document.getElementById("btnInvZero").textContent="Нули: "+(invHideZero?"скрыть":"показывать");
+  document.getElementById("invPlaceBtnLbl").textContent=invContainer||"Контейнер";
+  document.getElementById("invShelfBtnLbl").textContent="Полка: "+(invShelf||"вся");
+  document.getElementById("invZeroBtnLbl").textContent="Нули: "+(invHideZero?"скрыть":"показывать");
   document.getElementById("btnInvZero").classList.toggle("on",invHideZero);
 }
 function showInvControls(on){
@@ -1351,7 +1217,7 @@ function parseRuNumber(txt){
 }
 function updateVoiceBtn(){
   var b=document.getElementById("btnInvVoice");
-  b.textContent=recogOn?"🎤 слушает…":"🎤 Голос";
+  document.getElementById("voiceLbl").textContent=recogOn?"слушает…":"Голос";
   b.classList.toggle("listening",recogOn);
 }
 function stopVoice(){recogOn=false;try{if(recog)recog.stop();}catch(e){}updateVoiceBtn();}
@@ -1490,7 +1356,7 @@ document.getElementById("btnInvFinish").onclick=function(){
           "<br>Неизвестных кодов: "+summ.unknown+
           (queued?"<br><span class='st-warn'>Черновик сохранён: отчёт уйдёт при появлении сети</span>":"")+
           '<div class="cardbtns"><button id="btnInvApply" class="btn good">Записать подсчитанное в Факт</button>'+
-          '<button id="btnInvCsv" class="btn">Экспорт CSV</button><button id="btnInvClear" class="btn">Скрыть</button></div>';
+          '<button id="btnInvCsv" class="btn">Экспорт CSV</button><button id="btnInvClear" class="btn ghost">Скрыть</button></div>';
         box.querySelector("#btnInvApply").onclick=applyInventoryToFact;
         box.querySelector("#btnInvCsv").onclick=exportInvCsv;
         box.querySelector("#btnInvClear").onclick=function(){box.classList.add("hidden");};
@@ -1575,7 +1441,7 @@ function handleCode(raw,source){
     if(hits.length>1){
       html+='<div class="kv"><div class="k">Также найдено</div><div class="v">'+esc(hits.slice(1).map(function(x){return x.sheet;}).join(", "))+"</div></div>";
     }
-    html+='<div class="cardbtns"><button id="btnEdit" class="btn warn">Изменить факт/место</button><button id="btnToSearch" class="btn primary">Открыть в поиске</button><button id="btnAgain" class="btn">Сканировать дальше</button></div></div>';
+    html+='<div class="cardbtns"><button id="btnEdit" class="btn warn">Изменить факт/место</button><button id="btnToSearch" class="btn primary">Открыть в поиске</button><button id="btnAgain" class="btn ghost">Сканировать дальше</button></div></div>';
     box.innerHTML=html;
     var name=String(h.row[ix.name]);
     var sheetName=h.sheet, rowIdx=h.rowIdx;
