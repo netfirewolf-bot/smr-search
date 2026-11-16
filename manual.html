@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-store, must-revalidate">
+<title>ПБР · СМР Склад — памятка</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+.layout{display:grid;grid-template-columns:250px minmax(0,1fr);gap:18px;padding:16px;max-width:1200px;margin:0 auto}
+@media (max-width:900px){.layout{grid-template-columns:1fr}nav#toc{position:static!important;height:auto!important}}
+nav#toc{position:sticky;top:70px;align-self:start;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:12px;max-height:calc(100vh - 90px);overflow:auto;box-shadow:var(--sh-1)}
+nav#toc a{display:block;padding:7px 10px;border-radius:var(--r-sm);color:var(--text-2);font-size:13px;font-weight:600;text-decoration:none}
+nav#toc a:hover{background:var(--surface-2);color:var(--text)}
+nav#toc .t{font-size:11px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.05em;padding:4px 10px 8px}
+article{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);box-shadow:var(--sh-1);padding:20px 22px}
+article section{margin-bottom:26px}
+article h2{font-size:17px;margin:0 0 10px;letter-spacing:-.01em}
+article h3{font-size:14px;margin:14px 0 6px;color:var(--text-2)}
+article p,article li{font-size:13.5px;line-height:1.65;color:var(--text)}
+article ul{margin:6px 0 6px 18px;padding:0}
+article li{margin:4px 0}
+table{width:100%;border-collapse:collapse;font-size:12.5px;margin:8px 0}
+th,td{border:1px solid var(--border);padding:7px 9px;text-align:left;vertical-align:top}
+th{background:var(--surface-2);font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-2)}
+pre{background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px;overflow:auto;
+  font-family:Consolas,Menlo,monospace;font-size:11.5px;line-height:1.55}
+.note{background:var(--warn-soft);border:1px solid color-mix(in srgb,var(--warn) 35%,transparent);border-radius:var(--r-sm);
+  padding:10px 12px;font-size:12.5px;margin:10px 0}
+.good{background:var(--ok-soft);border:1px solid color-mix(in srgb,var(--ok) 35%,transparent);border-radius:var(--r-sm);
+  padding:10px 12px;font-size:12.5px;margin:10px 0}
+.docmeta{font-size:11.5px;color:var(--text-3);margin-bottom:14px}
+.printbar{display:flex;gap:8px;margin:0 0 14px}
+@media print{
+  nav#toc,.printbar,header#toolbar{display:none!important}
+  .layout{display:block;padding:0}
+  article{border:0;box-shadow:none;padding:0}
+  body{background:#fff}
+}
+</style>
+</head>
+<body data-device="desktop">
+<header id="toolbar">
+  <span class="lights"><i class="r"></i><i class="y"></i><i class="g"></i></span>
+  <h1>Памятка системы</h1>
+  <div style="flex:1"></div>
+  <button class="btn icon" onclick="window.print()" title="Печать / сохранить в PDF">&#128424;</button>
+</header>
+
+<div class="layout">
+<nav id="toc">
+  <div class="t">Содержание</div>
+  <a href="#s1">1. Архитектура</a>
+  <a href="#s2">2. Адреса и доступ</a>
+  <a href="#s3">3. Файлы и версии</a>
+  <a href="#s4">4. Сотрудники и PIN</a>
+  <a href="#s5">5. Ежедневный регламент</a>
+  <a href="#s6">6. QR-коды системы</a>
+  <a href="#s7">7. Цепочки данных</a>
+  <a href="#s8">8. Аварийные ситуации</a>
+  <a href="#s9">9. Безопасность и бэкапы</a>
+  <a href="#s10">10. Режимы и клавиши</a>
+  <a href="#s11">11. Поддержка и версии</a>
+</nav>
+
+<article>
+<div class="docmeta">ООО «ПБР» · склад СМР · документ v3.0 · разработчик Байгулов К. А. · без секретных данных</div>
+
+<section id="s1">
+<h2>1. Архитектура</h2>
+<pre>ТЕЛЕФОН / ПК  (приложение PWA, GitHub Pages)
+      |  HTTPS
+      v
+GOOGLE APPS SCRIPT  (API внутри Google-таблицы SMR)
+      |  читает/пишет листы: СМР, Кладовая, Сканирования,
+      |  Инвентаризация, Правки, Черновики, Сотрудники, Служебное SMR
+      v
+ПК СКЛАДА: smr_sync.py  &lt;-&gt;  Excel (COM)  &lt;-&gt;  Google (gspread)
+      + веб-сервер :8433 (печать QR, отчёты, дашборд)</pre>
+<ul>
+<li>Телефон не зависит от включённого ПК: поиск, сканер, инвентаризация работают через Apps Script.</li>
+<li>ПК не зависит от внешних туннелей: синхронизация Excel↔Google идёт напрямую.</li>
+<li>Без сети на телефоне: приложение открывается из кэша, действия копятся в очереди и уходят при появлении связи.</li>
+</ul>
+</section>
+
+<section id="s2">
+<h2>2. Адреса и доступ</h2>
+<table>
+<tr><th>Назначение</th><th>Адрес</th></tr>
+<tr><td>Приложение (телефон, из любой точки)</td><td>https://netfirewolf-bot.github.io/smr-search/</td></tr>
+<tr><td>Памятка онлайн</td><td>https://netfirewolf-bot.github.io/smr-search/manual.html</td></tr>
+<tr><td>Веб-сервер ПК (LAN)</td><td>http://IP-КОМПЬЮТЕРА:8433</td></tr>
+<tr><td>Печать QR-этикеток (ПК)</td><td>http://localhost:8433/print.html</td></tr>
+<tr><td>Отчёт инвентаризации (ПК)</td><td>http://localhost:8433/report.html</td></tr>
+<tr><td>Дашборд состояния (ПК)</td><td>http://localhost:8433/dashboard.html</td></tr>
+<tr><td>Диагностика сервера</td><td>http://localhost:8433/api/health и /api/status</td></tr>
+</table>
+</section>
+
+<section id="s3">
+<h2>3. Файлы и версии</h2>
+<table>
+<tr><th>Файл</th><th>Версия</th><th>Назначение</th></tr>
+<tr><td>smr_sync.py</td><td>18.0.0</td><td>Ядро ПК: слежение, синхронизация, трей, веб-сервер, мониторинг, бэкапы, PDF</td></tr>
+<tr><td>web/index.html</td><td>20.0</td><td>Приложение: поиск, сканер, инвентаризация, вход по PIN</td></tr>
+<tr><td>web/styles.css</td><td>1</td><td>Дизайн-система (токены, компоненты, тёмная тема)</td></tr>
+<tr><td>web/sw.js</td><td>9</td><td>Офлайн-оболочка PWA</td></tr>
+<tr><td>web/manifest.webmanifest</td><td>3</td><td>Установка как приложения, иконки ПБР</td></tr>
+<tr><td>web/print.html</td><td>4</td><td>Печать QR: корзина, размеры, предпросмотр</td></tr>
+<tr><td>web/report.html</td><td>1</td><td>Отчёт инвентаризации с фильтрами и PDF</td></tr>
+<tr><td>web/dashboard.html</td><td>1</td><td>Дашборд состояния системы</td></tr>
+<tr><td>web/manual.html</td><td>1</td><td>Эта памятка онлайн</td></tr>
+<tr><td>make_manual_pdf.py</td><td>2</td><td>Генератор фирменного PDF-варианта памятки</td></tr>
+<tr><td>config.json</td><td>—</td><td>Настройки ПК: порт, листы, excel_path, лимиты алертов, бэкапы</td></tr>
+</table>
+<p>Папка программы: <b>C:\BASE\ПБР · СМР Склад — поиск и инвентаризация</b>. Файл учёта Excel настраивается в config.json (ключ excel_path) или через трей → «Выбрать файл SMR.xlsx…».</p>
+</section>
+
+<section id="s4">
+<h2>4. Сотрудники и PIN</h2>
+<ul>
+<li>Реестр сотрудников — лист Google-таблицы «Сотрудники»: <b>Имя | PIN | Активен</b> (шапка в строке 1).</li>
+<li>PIN храните текстом (формат ячейки «Простой текст»), 4–6 цифр. «Активен = нет» отключает вход.</li>
+<li>Вход в приложении обязателен; имя сотрудника пишется в сканы, инвентаризации, правки и черновики.</li>
+<li>Офлайн-вход работает для PIN, который уже успешно входил на этом устройстве (кэш хэша).</li>
+<li>История сканов фильтруется кнопкой «Только мои»; выход — ссылкой в разделе «История».</li>
+</ul>
+</section>
+
+<section id="s5">
+<h2>5. Ежедневный регламент</h2>
+<h3>ПК</h3>
+<ul>
+<li>Запуск: автозапуск при входе в Windows или SMR_Sync_start.bat; иконка в трее со статус-точкой.</li>
+<li>Работа в Excel как обычно: Ctrl+S → синхронизация в Google за 3–5 сек.</li>
+<li>Контроль: трей → «Дашборд состояния» (Google, очереди, бэкапы, тревоги).</li>
+</ul>
+<h3>Телефон</h3>
+<ul>
+<li>Перед зоной без сети: открыть приложение и нажать обновление (⟳).</li>
+<li>Скан/правки/инвентаризация без сети работают; всё уйдёт в очередь и отправится автоматически.</li>
+<li>Не очищать данные приложения (иначе сотрутся кэш, очередь и офлайн-PIN).</li>
+</ul>
+<h3>Инвентаризация</h3>
+<ul>
+<li>Сканер → свитч «Инвентаризация» → контейнер → полка (или скан QR полки) → сканировать позиции.</li>
+<li>«Пауза» сохраняет черновик (телефон + сервер); продолжить можно с любого устройства.</li>
+<li>«Завершить» → отчёт в Google; при необходимости «Записать подсчитанное в Факт».</li>
+</ul>
+<h3>Печать этикеток</h3>
+<ul>
+<li>ПК: print.html → отбор (полка/контейнер/поиск/галочки) → корзина → размер → предпросмотр → PDF.</li>
+<li>QR полки и контейнера печатаются кнопками «+ QR полки», «+ QR контейнера», «QR всех полок».</li>
+</ul>
+</section>
+
+<section id="s6">
+<h2>6. QR-коды системы</h2>
+<table>
+<tr><th>Тип</th><th>Содержимое</th><th>Действие при скане</th></tr>
+<tr><td>Позиция</td><td>бух. номер (любой формат: 00-00081586, 81586…)</td><td>Карточка позиции / строка инвентаризации</td></tr>
+<tr><td>Контейнер</td><td>CONT:&lt;имя&gt;</td><td>Карточка контейнера со списком полок</td></tr>
+<tr><td>Полка</td><td>SHELF:&lt;контейнер&gt;|&lt;полка&gt;</td><td>Включает инвентаризацию с этим контейнером и полкой</td></tr>
+</table>
+</section>
+
+<section id="s7">
+<h2>7. Цепочки данных</h2>
+<ul>
+<li><b>Excel → телефон:</b> Ctrl+S → smr_sync → Google → Apps Script → приложение (⟳ или автообновление).</li>
+<li><b>Правка с телефона:</b> приложение → Apps Script → лист «Правки» (НОВАЯ) → ПК (опрос 7 сек) → Excel COM → статус «ВЫПОЛНЕНО».</li>
+<li><b>Скан/инвентаризация:</b> приложение → Apps Script → листы «Сканирования»/«Инвентаризация» (ПК не участвует).</li>
+<li><b>Без сети:</b> всё пишется в локальную очередь телефона → автоотправка при связи.</li>
+</ul>
+</section>
+
+<section id="s8">
+<h2>8. Аварийные ситуации</h2>
+<table>
+<tr><th>Симптом</th><th>Действие</th></tr>
+<tr><td>Приложение не открывается</td><td>Проверить интернет; открыть адрес GitHub Pages в браузере; офлайн откроется из кэша с бейджем ОФЛАЙН</td></tr>
+<tr><td>Не входит по PIN</td><td>Проверить лист «Сотрудники» (текстовый PIN, «Активен»); офлайн входится только ранее входивший PIN</td></tr>
+<tr><td>Правки не применяются в Excel</td><td>Дашборд/лист «Правки»: НОВАЯ = ПК выключен или нет Google; ОШИБКА = читать текст в строке</td></tr>
+<tr><td>SSL-ошибки Google в логе ПК</td><td>Внешние волны блокировок; программа повторит сама; телефон не затронут</td></tr>
+<tr><td>Пустая печать/отчёт</td><td>Трей → «Синхронизировать сейчас», затем «Повторить» на странице</td></tr>
+<tr><td>Камера не включается</td><td>Только HTTPS-адрес приложения; разрешение браузера; не старое PWA с ts.net</td></tr>
+<tr><td>Пропали данные на телефоне</td><td>Не очищать данные приложения; переустановить PWA с адреса GitHub Pages</td></tr>
+<tr><td>Перенос программы на новый ПК</td><td>Скопировать папку программы + venv-зависимости; bat с %~dp0; автозапуск починится сам</td></tr>
+</table>
+</section>
+
+<section id="s9">
+<h2>9. Безопасность и бэкапы</h2>
+<ul>
+<li>Секреты (credentials.json, токен Apps Script, TOKEN.txt) — только на ПК, не в GitHub и не в чаты.</li>
+<li>Автобэкап: каждые 24 ч в backups\ (SMR.xlsx, sync_cache.json, config.json), хранение 7 дней; вручную — трей или дашборд.</li>
+<li>Google-таблица защищена историей версий; лист «Правки» хранит аудит правок с именами сотрудников.</li>
+<li>Доступ к приложению = знание адреса + PIN сотрудника; реестр сотрудников ведёт администратор.</li>
+</ul>
+</section>
+
+<section id="s10">
+<h2>10. Режимы и клавиши</h2>
+<ul>
+<li>Тема: авто/светлая/тёмная — кнопка в шапке (запоминается).</li>
+<li>Складской режим (крупно и контрастно) — кнопка «рамка-уголки» в шапке.</li>
+<li>Горячие клавиши ПК: / — поиск, 1/2/3 — разделы, F5 — обновить данные, Esc — закрыть.</li>
+<li>Онбординг-тур: при первом входе; повтор — ссылкой «Пройти обучение снова» в Истории.</li>
+</ul>
+</section>
+
+<section id="s11">
+<h2>11. Поддержка и версии</h2>
+<p>Разработчик: Байгулов Константин Александрович. Документ v3.0 соответствует: smr_sync 18.0.0, приложение 20.0, Apps Script 1.1.</p>
+<div class="good">Печатная версия: кнопка печати в шапке этой страницы или фирменный PDF из docs\ (make_manual_pdf.py).</div>
+<div class="note">При изменении системы обновляйте manual.html и перегенерируйте PDF, чтобы памятка не расходилась с реальностью.</div>
+</section>
+</article>
+</div>
+</body>
+</html>
