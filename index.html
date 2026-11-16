@@ -92,8 +92,6 @@ body.wh-mode .kv{font-size:16px;padding:10px 0}
   #toolbar{flex-wrap:nowrap}
   #toolbar h1{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 }
-  #toolbar h1{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-}
 </style>
 </head>
 <body data-device="phone">
@@ -252,7 +250,7 @@ body.wh-mode .kv{font-size:16px;padding:10px 0}
     </div>
     <div id="histList"></div>
     <div class="aboutline">
-      ООО «ПБР» · склад СМР · приложение v21 · разработчик Байгулов К. А.<br>
+      ООО «ПБР» · склад СМР · приложение v22 · разработчик Байгулов К. А.<br>
       <span id="empAbout"></span><br>
       <span class="link" id="tourRestart">Пройти обучение снова</span> ·
       <span class="link" id="empLogout">Выйти (смена сотрудника)</span><br>
@@ -328,7 +326,7 @@ body.wh-mode .kv{font-size:16px;padding:10px 0}
 <script>
 "use strict";
 /* ========== API ========== */
-var API_BASE="https://script.google.com/macros/s/AKfycbyoBQsXlulF0eCxNuYVfRCccTCJDJRneLQ5Nf8dznuZrZ3dcIWlO2Gu5h-xXi8VGhZHQw/exec";
+var API_BASE="https://script.google.com/macros/s/AKfycby_RUXltfprQtNPtPiSdSuPgQaDbtaVb3n8rkpKSxNl68x0z8X-zQj5eliIBIoz9w2MUw/exec";
 var API_TOKEN="smr-K7m2Qx9Zp4";
 function apiGet(action,params){
   var u=API_BASE+"?action="+encodeURIComponent(action)+"&token="+encodeURIComponent(API_TOKEN);
