@@ -73,7 +73,6 @@ body.wh-mode .kv{font-size:16px;padding:10px 0}
 #tourCard h3{margin:4px 0 6px;font-size:15px}
 #tourCard p{margin:0 0 12px;font-size:13px;color:var(--text-2);line-height:1.5}
 #tourCard .tbtns{display:flex;gap:8px;justify-content:flex-end}
-/* вход сотрудника */
 #loginOverlay{position:fixed;inset:0;z-index:120;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
 .logincard{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
   box-shadow:var(--sh-3);padding:26px 22px;text-align:center}
@@ -212,7 +211,7 @@ body.wh-mode .kv{font-size:16px;padding:10px 0}
       <button id="btnManual" class="btn">Найти</button>
     </div>
 
-    <div class="invbox">
+    <div class="invbox" id="invBox">
       <div class="invhead">
         <label class="switch"><input type="checkbox" id="invSwitch"><span class="sl"></span></label>
         <span class="invtitle">Инвентаризация</span>
@@ -246,7 +245,7 @@ body.wh-mode .kv{font-size:16px;padding:10px 0}
     </div>
     <div id="histList"></div>
     <div class="aboutline">
-      ООО «ПБР» · склад СМР · приложение v20 · разработчик Байгулов К. А.<br>
+      ООО «ПБР» · склад СМР · приложение v21 · разработчик Байгулов К. А.<br>
       <span id="empAbout"></span><br>
       <span class="link" id="tourRestart">Пройти обучение снова</span> ·
       <span class="link" id="empLogout">Выйти (смена сотрудника)</span><br>
@@ -322,7 +321,7 @@ body.wh-mode .kv{font-size:16px;padding:10px 0}
 <script>
 "use strict";
 /* ========== API ========== */
-var API_BASE="https://script.google.com/macros/s/AKfycbzWdOXqC1L1CxfwXZyWX3zD52tvAigNcOO6XHyu5Hnov2IaEA5KUMIpVKVOVC0wzYuBvw/exec";
+var API_BASE="https://script.google.com/macros/s/AKfycbw6OWtl-3aLFgQtb7pAQ3DNL0BgpXsRUsxhjTX3mNgK6smxgMLbNROymNFQrwjD454tLg/exec";
 var API_TOKEN="smr-K7m2Qx9Zp4";
 function apiGet(action,params){
   var u=API_BASE+"?action="+encodeURIComponent(action)+"&token="+encodeURIComponent(API_TOKEN);
@@ -363,11 +362,13 @@ async function apiPostSafe(action,payload){
   }
 }
 
-/* ========== СОТРУДНИКИ (F7) ========== */
+/* ========== СОТРУДНИКИ И РОЛИ ========== */
 var LS_EMP="smr_emp", LS_EMPCACHE="smr_emp_cache", LS_HISTMINE="smr_hist_mine";
 var EMP=null;
 try{EMP=JSON.parse(localStorage.getItem(LS_EMP)||"null");}catch(e){EMP=null;}
 function empName(){return EMP?EMP.name:"";}
+function empRole(){return EMP&&EMP.role?EMP.role:"смотритель";}
+function canEdit(){return !!(EMP&&EMP.role&&EMP.role!=="смотритель");}
 function getEmpCache(){try{return JSON.parse(localStorage.getItem(LS_EMPCACHE)||"{}");}catch(e){return {};}}
 async function hashPin(pin){
   try{
@@ -379,12 +380,18 @@ async function hashPin(pin){
     return "w"+(h>>>0);
   }
 }
+function applyRoleUI(){
+  var ok=canEdit();
+  document.getElementById("invBox").classList.toggle("hidden",!ok);
+  document.getElementById("tileInv").classList.toggle("hidden",!ok);
+  updateEmpLabels();
+}
 function updateEmpLabels(){
   var chip=document.getElementById("empChip");
-  if(EMP){chip.textContent=EMP.name;chip.classList.remove("hidden");}
+  if(EMP){chip.textContent=EMP.name;chip.title="Роль: "+empRole();chip.classList.remove("hidden");}
   else chip.classList.add("hidden");
-  document.getElementById("empLine").textContent=EMP?("Сотрудник: "+EMP.name):"";
-  document.getElementById("empAbout").textContent=EMP?("Смена: "+EMP.name):"Сотрудник не выбран";
+  document.getElementById("empLine").textContent=EMP?("Сотрудник: "+EMP.name+" · роль: "+empRole()):"";
+  document.getElementById("empAbout").textContent=EMP?("Смена: "+EMP.name+" · роль: "+empRole()):"Сотрудник не выбран";
   var mine=localStorage.getItem(LS_HISTMINE)==="1";
   var bm=document.getElementById("btnHistMine");
   bm.classList.toggle("on",mine);
@@ -399,9 +406,9 @@ async function loginSuccess(emp,pin,offline){
   var cache=getEmpCache();cache[h]=emp;
   localStorage.setItem(LS_EMPCACHE,JSON.stringify(cache));
   hideLogin();
-  updateEmpLabels();
+  applyRoleUI();
   renderHistory();
-  toast((offline?"Вход офлайн: ":"Здравствуйте, ")+emp.name);
+  toast((offline?"Вход офлайн: ":"Здравствуйте, ")+emp.name+" ("+empRole()+")");
   if(!localStorage.getItem("smr_onboard_done")){tourStarted=true;setTimeout(tourStart,600);}
 }
 async function doLogin(){
@@ -428,7 +435,7 @@ document.getElementById("empLogout").onclick=function(){
   if(!confirm("Выйти и сменить сотрудника?"))return;
   EMP=null;localStorage.removeItem(LS_EMP);
   stopCamera();stopVoice();
-  updateEmpLabels();showLogin();
+  applyRoleUI();showLogin();
   document.getElementById("loginPin").value="";
 };
 document.getElementById("btnHistMine").onclick=function(){
@@ -650,7 +657,7 @@ function colType(i){
   for(var k=0;k<rows.length&&tot<200;k++){var v=rows[k][i];if(v===""||v==null)continue;tot++;
     var s=String(v).trim();
     if(/^-?\d+([.,]\d+)?$/.test(s))num++;
-    else if(/^\d{2}\.\d{2}\.\d{4}(\s\d{1,2}:\d{2}(:\d{2})?)?$/.test(s))dat++;
+    else if(/^\d{2}\.\d{2}\.\d{4}(\s\d{1,2}:\d{2}(?::\d{2})?)?$/.test(s))dat++;
   }
   if(tot===0)return "str";
   if(num/tot>0.9)return "num";
@@ -908,7 +915,9 @@ function openContainerCard(containerName){
     });
     html+='</div>';
   }
-  html+='<div class="cardbtns"><button id="btnStartInvFromCard" class="btn warn">Начать инвентаризацию этого контейнера</button></div>';
+  if(canEdit()){
+    html+='<div class="cardbtns"><button id="btnStartInvFromCard" class="btn warn">Начать инвентаризацию этого контейнера</button></div>';
+  }
   document.getElementById("cardBody").innerHTML=html;
   document.getElementById("cardBody").querySelectorAll(".crow.item").forEach(function(row){
     row.onclick=function(){
@@ -917,7 +926,8 @@ function openContainerCard(containerName){
       openCard(DATA.sheets[it.sheet].rows[it.rowIdx],it.sheet,it.rowIdx);
     };
   });
-  document.getElementById("cardBody").querySelector("#btnStartInvFromCard").onclick=function(){
+  var bi=document.getElementById("cardBody").querySelector("#btnStartInvFromCard");
+  if(bi)bi.onclick=function(){
     document.getElementById("cardOverlay").classList.add("hidden");
     showView("scan");
     enterInvMode(false);
@@ -949,11 +959,15 @@ function openCard(row,sheetName,rowIdx){
     if(i===ix.diff){var d=toNum(v);cls=(d!=null&&d!==0)?"diffbad":"diffgood";}
     html+='<div class="kv"><div class="k">'+esc(h)+'</div><div class="v '+cls+'">'+esc(v)+"</div></div>";
   });
-  html+='<div class="cardbtns"><button id="btnEdit" class="btn warn">Изменить факт/место</button>'+
-        '<button id="btnMove" class="btn ghost"><svg class="ic sm"><use href="#i-box"/></svg>Перенести</button></div>';
+  if(canEdit()){
+    html+='<div class="cardbtns"><button id="btnEdit" class="btn warn">Изменить факт/место</button>'+
+          '<button id="btnMove" class="btn ghost"><svg class="ic sm"><use href="#i-box"/></svg>Перенести</button></div>';
+  }
   document.getElementById("cardBody").innerHTML=html;
-  document.getElementById("cardBody").querySelector("#btnEdit").onclick=function(){openEdit(sheetName,rowIdx);};
-  document.getElementById("cardBody").querySelector("#btnMove").onclick=function(){
+  var be=document.getElementById("cardBody").querySelector("#btnEdit");
+  if(be)be.onclick=function(){openEdit(sheetName,rowIdx);};
+  var bm=document.getElementById("cardBody").querySelector("#btnMove");
+  if(bm)bm.onclick=function(){
     document.getElementById("cardOverlay").classList.add("hidden");
     openMove(sheetName,rowIdx,null);
   };
@@ -961,6 +975,7 @@ function openCard(row,sheetName,rowIdx){
   hideSuggest();
 }
 function openMove(sheetName,rowIdx,invIdx){
+  if(!canEdit())return;
   if(!DATA||!DATA.sheets[sheetName])return;
   var sh=DATA.sheets[sheetName],ix=IDX_BY_SHEET[sheetName],row=sh.rows[rowIdx];
   if(!row)return;
@@ -987,6 +1002,7 @@ function openMove(sheetName,rowIdx,invIdx){
   });
 }
 function openEdit(sheetName,rowIdx){
+  if(!canEdit())return;
   var sh=DATA.sheets[sheetName];
   var ix=IDX_BY_SHEET[sheetName];
   var row=sh.rows[rowIdx];
@@ -1011,6 +1027,7 @@ document.getElementById("editSave").onclick=async function(){
   if(!editCtx)return;
   var st=document.getElementById("editStatus");
   st.textContent="";
+  if(!canEdit()){st.textContent="Недостаточно прав для изменения.";return;}
   var factV=document.getElementById("editFact").value.trim();
   var placeV=document.getElementById("editPlace").value.trim();
   var shelfV=document.getElementById("editShelf").value.trim();
@@ -1468,6 +1485,7 @@ function showInvControls(on){
   if(!on)document.getElementById("invSummary").classList.add("hidden");
 }
 function enterInvMode(askDraft){
+  if(!canEdit()){toast("Недостаточно прав: инвентаризация недоступна вашей роли");return;}
   invMode=true;
   document.getElementById("invSwitch").checked=true;
   showInvControls(true);
@@ -1515,7 +1533,10 @@ function exitInvMode(){
   stopVoice();
 }
 document.getElementById("invSwitch").onchange=function(){
-  if(this.checked)enterInvMode(true);else exitInvMode();
+  if(this.checked){
+    if(!canEdit()){this.checked=false;toast("Недостаточно прав для инвентаризации");return;}
+    enterInvMode(true);
+  }else exitInvMode();
 };
 document.getElementById("btnInvPlace").onclick=function(){
   openPicker(null,PLACE_OPTIONS,"Контейнер инвентаризации",function(v){
@@ -1715,6 +1736,7 @@ document.getElementById("btnInvFinish").onclick=function(){
   });
 };
 function applyInventoryToFact(){
+  if(!canEdit()){toast("Недостаточно прав");return;}
   var cand=(invLastItems||[]).filter(function(i){return i.sheet&&!i.unknownFlag&&!i.missingFlag;});
   if(!cand.length){toast("Нет позиций для записи");return;}
   if(!confirm("Поставить в очередь запись «Подсчитано» в колонку «Факт» Excel для "+cand.length+
@@ -1750,6 +1772,7 @@ function exportInvCsv(){
 /* ========== ОБРАБОТКА СКАНА ========== */
 function handleCode(raw,source){
   if(raw.indexOf("SHELF:")===0){
+    if(!canEdit()){feedback(false);toast("Недостаточно прав: инвентаризация недоступна вашей роли");return;}
     var body=raw.slice(6);
     var parts=body.split("|");
     var c=(parts[0]||"").trim(), s=(parts[1]||"").trim();
@@ -1807,15 +1830,20 @@ function handleCode(raw,source){
     if(hits.length>1){
       html+='<div class="kv"><div class="k">Также найдено</div><div class="v">'+esc(hits.slice(1).map(function(x){return x.sheet;}).join(", "))+"</div></div>";
     }
-    html+='<div class="cardbtns"><button id="btnEdit" class="btn warn">Изменить факт/место</button>'+
-          '<button id="btnMove" class="btn ghost"><svg class="ic sm"><use href="#i-box"/></svg>Перенести</button>'+
-          '<button id="btnToSearch" class="btn primary">Открыть в поиске</button>'+
+    html+='<div class="cardbtns">';
+    if(canEdit()){
+      html+='<button id="btnEdit" class="btn warn">Изменить факт/место</button>'+
+            '<button id="btnMove" class="btn ghost"><svg class="ic sm"><use href="#i-box"/></svg>Перенести</button>';
+    }
+    html+='<button id="btnToSearch" class="btn primary">Открыть в поиске</button>'+
           '<button id="btnAgain" class="btn ghost">Сканировать дальше</button></div></div>';
     box.innerHTML=html;
     var name=String(h.row[ix.name]);
     var sheetName=h.sheet, rowIdx=h.rowIdx;
-    box.querySelector("#btnEdit").onclick=function(){openEdit(sheetName,rowIdx);};
-    box.querySelector("#btnMove").onclick=function(){openMove(sheetName,rowIdx,null);};
+    var be=box.querySelector("#btnEdit");
+    if(be)be.onclick=function(){openEdit(sheetName,rowIdx);};
+    var bm=box.querySelector("#btnMove");
+    if(bm)bm.onclick=function(){openMove(sheetName,rowIdx,null);};
     box.querySelector("#btnToSearch").onclick=function(){
       document.getElementById("q").value=name;
       showView("search");
@@ -2024,6 +2052,7 @@ document.getElementById("refreshBtn").onclick=function(){loadData();};
 
 /* ========== СТАРТ ========== */
 updateEmpLabels();
+applyRoleUI();
 if(!EMP)showLogin();
 loadData();
 </script>
