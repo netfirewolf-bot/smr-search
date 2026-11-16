@@ -86,7 +86,11 @@ body.wh-mode .kv{font-size:16px;padding:10px 0}
 #loginStatus{min-height:18px;font-size:12px;color:var(--bad);font-weight:600;margin:10px 0}
 #loginGo{width:100%}
 .empchip{display:inline-flex;align-items:center;gap:6px;background:var(--primary-soft);color:var(--primary);
-  border-radius:var(--r-pill);padding:3px 10px;font-size:11px;font-weight:700}
+  border-radius:var(--r-pill);padding:3px 10px;font-size:11px;font-weight:700}@media (max-width:760px){
+  #empChip{display:none}
+  #toolbar{flex-wrap:nowrap}
+  #toolbar h1{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
 </style>
 </head>
 <body data-device="phone">
@@ -321,7 +325,7 @@ body.wh-mode .kv{font-size:16px;padding:10px 0}
 <script>
 "use strict";
 /* ========== API ========== */
-var API_BASE="https://script.google.com/macros/s/AKfycby_RUXltfprQtNPtPiSdSuPgQaDbtaVb3n8rkpKSxNl68x0z8X-zQj5eliIBIoz9w2MUw/exec";
+var API_BASE="https://script.google.com/macros/s/AKfycbyoBQsXlulF0eCxNuYVfRCccTCJDJRneLQ5Nf8dznuZrZ3dcIWlO2Gu5h-xXi8VGhZHQw/exec";
 var API_TOKEN="smr-K7m2Qx9Zp4";
 function apiGet(action,params){
   var u=API_BASE+"?action="+encodeURIComponent(action)+"&token="+encodeURIComponent(API_TOKEN);
@@ -1102,6 +1106,8 @@ async function loadData(){
       if(s){try{DATA=JSON.parse(s);}catch(e2){}}
     }
     renderSyncBadge(true);
+    document.getElementById("summary").textContent="Ошибка загрузки данных: "+e;
+    toast("Ошибка загрузки данных: "+e);
   }
   skel.classList.add("hidden");
   if(DATA){
@@ -2051,6 +2057,7 @@ document.getElementById("cardOverlay").onclick=function(e){if(e.target===this)th
 document.getElementById("refreshBtn").onclick=function(){loadData();};
 
 /* ========== СТАРТ ========== */
+if(EMP&&!EMP.role){EMP=null;localStorage.removeItem(LS_EMP);}
 updateEmpLabels();
 applyRoleUI();
 if(!EMP)showLogin();
