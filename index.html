@@ -24,6 +24,8 @@
 .pill.bad{background:var(--bad-soft);color:var(--bad)}
 .stepbtn{border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);border-radius:var(--r-sm);width:34px;height:38px;font-size:16px;font-weight:700;cursor:pointer;flex:none}
 .stepbtn:active{background:var(--surface-3)}
+.rowbtn{border:1px solid var(--border);background:var(--surface-2);color:var(--text-2);border-radius:var(--r-sm);width:34px;height:38px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.rowbtn:active{background:var(--surface-3)}
 .tl{position:relative;padding-left:16px}
 .tl::before{content:"";position:absolute;left:5px;top:6px;bottom:6px;width:2px;background:var(--border);border-radius:2px}
 .tlitem{position:relative;margin-bottom:8px}
@@ -38,6 +40,11 @@ body[data-device="desktop"] #tiles{display:none}
   cursor:pointer;box-shadow:var(--sh-1);transition:transform .05s}
 .tile:active{transform:scale(.97)}
 .tile .ic{width:22px;height:22px;color:var(--primary)}
+.dtitle{font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.05em;margin:12px 16px 6px}
+.dchips{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px}
+.dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;padding:0 16px}
+body[data-device="desktop"] .dgrid{grid-template-columns:repeat(auto-fill,minmax(210px,1fr))}
+.dgrid .tile span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;font-size:11.5px}
 body.wh-mode{font-size:17px;--text-2:var(--text);--border:var(--border-2)}
 body.wh-mode .btn{min-height:52px;font-size:16px;padding:12px 16px}
 body.wh-mode .btn.icon{min-height:44px;min-width:44px}
@@ -50,7 +57,7 @@ body.wh-mode .ic{width:24px;height:24px}
 body.wh-mode nav#bottom button{font-size:12px}
 body.wh-mode nav#bottom button .ic{width:26px;height:26px}
 body.wh-mode .invnum{width:96px;height:46px;font-size:16px}
-body.wh-mode .stepbtn{width:44px;height:46px;font-size:18px}
+body.wh-mode .stepbtn,body.wh-mode .rowbtn{width:44px;height:46px;font-size:18px}
 body.wh-mode .invdel{padding:12px 14px}
 body.wh-mode .tile{padding:16px 6px;font-size:13px}
 body.wh-mode .seg button{padding:12px 0;font-size:16px}
@@ -130,6 +137,8 @@ body.wh-mode .kv{font-size:16px;padding:10px 0}
     <div id="suggest"></div>
   </div>
   <div id="chips"></div>
+  <div id="recentWrap" class="hidden"></div>
+  <div id="freqWrap" class="hidden"></div>
   <div id="summary"></div>
   <div id="colhint">Ширина столбцов: тяните правый край заголовка; двойной клик/тап — сброс</div>
   <div class="tablewrap">
@@ -207,7 +216,7 @@ body.wh-mode .kv{font-size:16px;padding:10px 0}
     </div>
     <div id="histList"></div>
     <div class="aboutline">
-      ООО «ПБР» · склад СМР · приложение v18 · разработчик Байгулов К. А.<br>
+      ООО «ПБР» · склад СМР · приложение v19 · разработчик Байгулов К. А.<br>
       <span class="link" id="tourRestart">Пройти обучение снова</span> ·
       горячие клавиши: / — поиск, 1/2/3 — разделы, F5 — обновить, Esc — закрыть
     </div>
@@ -327,7 +336,7 @@ var DATA=null, curSheet=null, sortState={col:-1,dir:1}, viewList=[];
 var filters={diff:false,ost:false,fact:false,place:false};
 var IDX_BY_SHEET={};
 var LS_KEY="smr_snapshot_v1", LS_SCANS="smr_scans_v1", LS_DEVICE="smr_device_id", COLW_KEY="smr_colw_v1";
-var LS_INVDRAFT="smr_inv_draft", LS_INVZERO="smr_inv_hidezero";
+var LS_INVDRAFT="smr_inv_draft", LS_INVZERO="smr_inv_hidezero", LS_RECENT="smr_recent_q";
 var CHIP_DEFS=[
   {key:"diff",label:"Разница ≠ 0",idx:"diff"},
   {key:"ost",label:"Остаток = 0",idx:"ost"},
@@ -589,6 +598,56 @@ function renderChips(){
     box.appendChild(c);
   });
 }
+/* F6: недавние запросы + частые позиции */
+function getRecent(){try{return JSON.parse(localStorage.getItem(LS_RECENT)||"[]");}catch(e){return [];}}
+function pushRecent(q){
+  if(!q)return;
+  var r=getRecent().filter(function(x){return x!==q;});
+  r.unshift(q);if(r.length>8)r=r.slice(0,8);
+  localStorage.setItem(LS_RECENT,JSON.stringify(r));
+}
+function renderDiscover(){
+  var q=document.getElementById("q").value.trim();
+  var fw=document.getElementById("freqWrap"),rw=document.getElementById("recentWrap");
+  if(q||!DATA){fw.classList.add("hidden");rw.classList.add("hidden");return;}
+  rw.innerHTML="";
+  var rec=getRecent();
+  if(rec.length){
+    rw.classList.remove("hidden");
+    var t=document.createElement("div");t.className="dtitle";t.textContent="Недавние запросы";rw.appendChild(t);
+    var chips=document.createElement("div");chips.className="dchips";
+    rec.forEach(function(s){
+      var b=document.createElement("button");b.className="chip";b.textContent=s;
+      b.onclick=function(){document.getElementById("q").value=s;document.getElementById("q").dispatchEvent(new Event("input"));};
+      chips.appendChild(b);
+    });
+    rw.appendChild(chips);
+  }else rw.classList.add("hidden");
+  var h=getHistory(),counts={};
+  h.forEach(function(r){
+    if(r.found&&r.norm){
+      if(!counts[r.norm])counts[r.norm]={n:0,name:r.name,key:r.norm};
+      counts[r.norm].n++;
+    }
+  });
+  var top=Object.keys(counts).map(function(k){return counts[k];}).sort(function(a,b){return b.n-a.n;}).slice(0,6);
+  fw.innerHTML="";
+  if(top.length){
+    fw.classList.remove("hidden");
+    var t2=document.createElement("div");t2.className="dtitle";t2.textContent="Частые позиции";fw.appendChild(t2);
+    var grid=document.createElement("div");grid.className="dgrid";
+    top.forEach(function(c){
+      var b=document.createElement("button");b.className="tile";
+      b.innerHTML='<svg class="ic"><use href="#i-box"/></svg><span>'+esc(c.name)+'</span>';
+      b.onclick=function(){
+        var hits=findAcrossSheets(c.key,"");
+        if(hits.length)openCard(hits[0].row,hits[0].sheet,hits[0].rowIdx);
+      };
+      grid.appendChild(b);
+    });
+    fw.appendChild(grid);
+  }else fw.classList.add("hidden");
+}
 function renderTable(){
   var s=sheet();
   viewList=buildView();
@@ -637,6 +696,7 @@ function renderTable(){
   }else{
     empty.classList.add("hidden");
   }
+  renderDiscover();
 }
 
 /* ========== PICKERS ========== */
@@ -766,7 +826,7 @@ function openContainerCard(containerName){
   hideSuggest();
 }
 
-/* ========== КАРТОЧКА ПОЗИЦИИ + РЕДАКТОР ========== */
+/* ========== КАРТОЧКА ПОЗИЦИИ + РЕДАКТОР + ПЕРЕНОС (F5) ========== */
 var editCtx=null;
 function openCard(row,sheetName,rowIdx){
   var s=DATA.sheets[sheetName];
@@ -784,13 +844,42 @@ function openCard(row,sheetName,rowIdx){
     if(i===ix.diff){var d=toNum(v);cls=(d!=null&&d!==0)?"diffbad":"diffgood";}
     html+='<div class="kv"><div class="k">'+esc(h)+'</div><div class="v '+cls+'">'+esc(v)+"</div></div>";
   });
-  html+='<div class="cardbtns"><button id="btnEdit" class="btn warn">Изменить факт/место</button></div>';
+  html+='<div class="cardbtns"><button id="btnEdit" class="btn warn">Изменить факт/место</button>'+
+        '<button id="btnMove" class="btn ghost"><svg class="ic sm"><use href="#i-box"/></svg>Перенести</button></div>';
   document.getElementById("cardBody").innerHTML=html;
-  document.getElementById("cardBody").querySelector("#btnEdit").onclick=function(){
-    openEdit(sheetName,rowIdx);
+  document.getElementById("cardBody").querySelector("#btnEdit").onclick=function(){openEdit(sheetName,rowIdx);};
+  document.getElementById("cardBody").querySelector("#btnMove").onclick=function(){
+    document.getElementById("cardOverlay").classList.add("hidden");
+    openMove(sheetName,rowIdx,null);
   };
   document.getElementById("cardOverlay").classList.remove("hidden");
   hideSuggest();
+}
+function openMove(sheetName,rowIdx,invIdx){
+  if(!DATA||!DATA.sheets[sheetName])return;
+  var sh=DATA.sheets[sheetName],ix=IDX_BY_SHEET[sheetName],row=sh.rows[rowIdx];
+  if(!row)return;
+  var buh=ix.buh>=0?normBuh(row[ix.buh]):"";
+  openPicker(null,PLACE_OPTIONS,"Перенос: выберите контейнер",function(c){
+    openPicker(null,shelvesForContainer(c),"Перенос: выберите полку",function(s){
+      var shelf=(s===WHOLE)?"":s;
+      var msg="Перенести позицию:\n"+row[ix.name]+"\n\nНовое место: «"+c+"»"+(shelf?" / полка «"+shelf+"»":" (без полки)")+
+              "\n\nБудет поставлена правка места хранения в Excel.";
+      if(!confirm(msg))return;
+      apiPostSafe("update",{device:deviceId(),sheet:sheetName,buh:buh,place:c,shelf:shelf}).then(function(res){
+        if(ix.place>=0)row[ix.place]=c;
+        if(ix.shelf>=0)row[ix.shelf]=shelf;
+        localStorage.setItem(LS_KEY,JSON.stringify(DATA));
+        renderTable();buildEditLists();
+        if(invIdx!=null&&invItems[invIdx]){
+          invItems[invIdx].container=c;
+          invItems[invIdx].shelf=shelf||null;
+          renderInvList();
+        }
+        toast(res.queued?"Перенос в очереди (нет сети)":"Перенос принят: применится на ПК за ~5–15 сек");
+      });
+    });
+  });
 }
 function openEdit(sheetName,rowIdx){
   var sh=DATA.sheets[sheetName];
@@ -1233,10 +1322,11 @@ function renderInvList(){
       d.className="invrow";
       var scopeTxt=multi?(" · ["+esc(it.container||"—")+(it.shelf?"/"+esc(it.shelf):"")+"]"):"";
       var meta=esc(it.buh||"—")+" · учёт: "+esc(it.book)+scopeTxt+' · <span class="pill '+pillClass(st)+'">'+esc(st)+"</span>";
+      var moveBtn=(!it.unknown&&it.sheet)?'<button class="rowbtn" title="Перенести позицию"><svg class="ic sm"><use href="#i-box"/></svg></button>':"";
       d.innerHTML='<div class="invname">'+esc(it.name)+'<span class="invmeta">'+meta+"</span></div>"+
         '<button class="stepbtn" data-d="-1">−</button>'+
         '<input class="invnum" type="number" step="any" inputmode="decimal" value="'+esc(it.counted)+'">'+
-        '<button class="stepbtn" data-d="1">+</button>'+
+        '<button class="stepbtn" data-d="1">+</button>'+moveBtn+
         '<button class="invdel"><svg class="ic sm"><use href="#i-trash"/></svg></button>';
       d.querySelectorAll(".stepbtn").forEach(function(b){
         b.onclick=function(){
@@ -1249,6 +1339,8 @@ function renderInvList(){
         it.counted=this.value===""?0:parseFloat(String(this.value).replace(",","."));
         renderInvList();
       });
+      var mb=d.querySelector(".rowbtn");
+      if(mb)mb.onclick=function(){openMove(it.sheet,it.rowIdx,idx);};
       d.querySelector(".invdel").onclick=function(){invItems.splice(idx,1);renderInvList();};
       box.appendChild(d);
     });
@@ -1549,7 +1641,6 @@ function exportInvCsv(){
 
 /* ========== ОБРАБОТКА СКАНА ========== */
 function handleCode(raw,source){
-  /* QR полки: SHELF:контейнер|полка */
   if(raw.indexOf("SHELF:")===0){
     var body=raw.slice(6);
     var parts=body.split("|");
@@ -1567,7 +1658,6 @@ function handleCode(raw,source){
       name:"Полка: "+(s||"—")+" · "+(c||"—"),source:source});
     return;
   }
-  /* QR контейнера: CONT:контейнер */
   if(raw.indexOf("CONT:")===0){
     var cname=raw.slice(5);
     feedback(true);
@@ -1608,11 +1698,15 @@ function handleCode(raw,source){
     if(hits.length>1){
       html+='<div class="kv"><div class="k">Также найдено</div><div class="v">'+esc(hits.slice(1).map(function(x){return x.sheet;}).join(", "))+"</div></div>";
     }
-    html+='<div class="cardbtns"><button id="btnEdit" class="btn warn">Изменить факт/место</button><button id="btnToSearch" class="btn primary">Открыть в поиске</button><button id="btnAgain" class="btn ghost">Сканировать дальше</button></div></div>';
+    html+='<div class="cardbtns"><button id="btnEdit" class="btn warn">Изменить факт/место</button>'+
+          '<button id="btnMove" class="btn ghost"><svg class="ic sm"><use href="#i-box"/></svg>Перенести</button>'+
+          '<button id="btnToSearch" class="btn primary">Открыть в поиске</button>'+
+          '<button id="btnAgain" class="btn ghost">Сканировать дальше</button></div></div>';
     box.innerHTML=html;
     var name=String(h.row[ix.name]);
     var sheetName=h.sheet, rowIdx=h.rowIdx;
     box.querySelector("#btnEdit").onclick=function(){openEdit(sheetName,rowIdx);};
+    box.querySelector("#btnMove").onclick=function(){openMove(sheetName,rowIdx,null);};
     box.querySelector("#btnToSearch").onclick=function(){
       document.getElementById("q").value=name;
       showView("search");
@@ -1684,13 +1778,13 @@ document.getElementById("tourRestart").onclick=function(){
 /* ========== ОНБОРДИНГ ========== */
 var TOUR_STEPS=[
   {view:"search",sel:"#q",title:"Мгновенный поиск",
-   text:"Введите название или бух. номер — подсказки появятся сразу. Поиск работает и без сети, по последним сохранённым данным."},
+   text:"Введите название или бух. номер — подсказки появятся сразу. При пустом поиске видны частые позиции и недавние запросы."},
   {view:"search",sel:"#tabs",title:"Два склада",
    text:"Переключайтесь между листами СМР и Кладовая. Сортировка — тап по заголовку столбца, ширина столбцов — перетаскиванием края."},
   {view:"scan",sel:"#btnStart",title:"QR-сканер",
    text:"Сканируйте этикетки позиций, QR полок и контейнеров. Вспышка и зум помогут в тёмном контейнере."},
-  {view:"scan",sel:"#invSwitch",title:"Инвентаризация",
-   text:"Отсканируйте QR полки — контейнер и полка выберутся сами. Или включите режим вручную. Черновик сохраняется автоматически."},
+  {view:"scan",sel:"#invSwitch",title:"Инвентаризация и перенос",
+   text:"Отсканируйте QR полки — контейнер и полка выберутся сами. Кнопка-коробка в строке переносит позицию в другое место."},
   {view:"search",sel:"#toolbar",title:"Тема, складской режим, обновление",
    text:"Кнопка «рамка» — складской режим (крупно и контрастно). Кнопка темы — светлая/тёмная/авто. Значок обновления тянет свежие данные."}
 ];
@@ -1795,6 +1889,7 @@ document.getElementById("q").addEventListener("input",function(){
   debTimer=setTimeout(function(){
     if(!DATA)return;
     if(!q){hideSuggest();renderTable();return;}
+    pushRecent(q);
     var nq=normText(q),qb=normBuh(q);
     var items=[];
     var rows=sheet().rows;
