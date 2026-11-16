@@ -73,6 +73,21 @@ body.wh-mode .kv{font-size:16px;padding:10px 0}
 #tourCard h3{margin:4px 0 6px;font-size:15px}
 #tourCard p{margin:0 0 12px;font-size:13px;color:var(--text-2);line-height:1.5}
 #tourCard .tbtns{display:flex;gap:8px;justify-content:flex-end}
+/* вход сотрудника */
+#loginOverlay{position:fixed;inset:0;z-index:120;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
+.logincard{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  box-shadow:var(--sh-3);padding:26px 22px;text-align:center}
+.loginbrand{width:64px;height:64px;border-radius:16px;background:#0f172a;color:#fff;display:flex;align-items:center;
+  justify-content:center;font-size:18px;font-weight:800;margin:0 auto 12px}
+.logincard h2{margin:0 0 4px;font-size:18px}
+.logincard .sub{font-size:12px;color:var(--text-3);margin-bottom:18px}
+#loginPin{width:100%;text-align:center;font-size:26px;letter-spacing:8px;padding:12px;border:1px solid var(--border);
+  border-radius:var(--r-md);background:var(--surface-2);color:var(--text);outline:none;font-family:inherit}
+#loginPin:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--ring);background:var(--surface)}
+#loginStatus{min-height:18px;font-size:12px;color:var(--bad);font-weight:600;margin:10px 0}
+#loginGo{width:100%}
+.empchip{display:inline-flex;align-items:center;gap:6px;background:var(--primary-soft);color:var(--primary);
+  border-radius:var(--r-pill);padding:3px 10px;font-size:11px;font-weight:700}
 </style>
 </head>
 <body data-device="phone">
@@ -100,7 +115,19 @@ body.wh-mode .kv{font-size:16px;padding:10px 0}
 <symbol id="i-wifioff" viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M5 10a12 12 0 0 1 4-2.5"/><path d="M19 10a12 12 0 0 0-6-3"/><path d="M8 14a7 7 0 0 1 3-1.5"/><path d="M12 18v.5"/></symbol>
 <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6z"/><path d="M15 2v5h5"/></symbol>
 <symbol id="i-max" viewBox="0 0 24 24"><path d="M4 9V4h5"/><path d="M20 9V4h-5"/><path d="M4 15v5h5"/><path d="M20 15v5h-5"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></symbol>
 </svg>
+
+<div id="loginOverlay" class="hidden">
+  <div class="logincard">
+    <div class="loginbrand">ПБР</div>
+    <h2>Вход сотрудника</h2>
+    <div class="sub">ООО «ПБР» · склад СМР · введите личный PIN</div>
+    <input id="loginPin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="••••" autocomplete="off">
+    <div id="loginStatus"></div>
+    <button id="loginGo" class="btn primary"><svg class="ic sm"><use href="#i-user"/></svg>Войти</button>
+  </div>
+</div>
 
 <div id="app">
 <aside id="sidebar">
@@ -116,6 +143,7 @@ body.wh-mode .kv{font-size:16px;padding:10px 0}
   <span class="lights"><i class="r"></i><i class="y"></i><i class="g"></i></span>
   <h1>ПБР · СМР</h1>
   <div id="syncBadge" class="badge">загрузка…</div>
+  <span id="empChip" class="empchip hidden"></span>
   <button id="whBtn" class="btn icon" title="Складской режим (крупно и контрастно)"><svg class="ic"><use href="#i-max"/></svg></button>
   <button id="themeBtn" class="btn icon" title="Тема: авто"><svg class="ic"><use href="#i-moon" id="themeIcon"/></svg></button>
   <button id="installBtn" class="btn icon hidden" title="Установить приложение"><svg class="ic"><use href="#i-install"/></svg></button>
@@ -162,6 +190,7 @@ body.wh-mode .kv{font-size:16px;padding:10px 0}
       <div id="scanFlash"></div>
     </div>
     <div id="scanStats">Сканирований: <b id="scanCount">0</b> · найдено: <b id="scanFound">0</b></div>
+    <div id="empLine" class="invlabel" style="margin:2px 0"></div>
     <div id="sessionTitle" class="hidden">Последние сканы сессии</div>
     <div id="sessionList"></div>
     <div id="scanControls">
@@ -211,13 +240,16 @@ body.wh-mode .kv{font-size:16px;padding:10px 0}
 <section id="view-history" class="hidden">
   <div class="histwrap">
     <div class="histbtns">
+      <button id="btnHistMine" class="btn ghost">Только мои</button>
       <button id="btnHistClear" class="btn ghost"><svg class="ic sm"><use href="#i-trash"/></svg>Очистить</button>
       <button id="btnHistCsv" class="btn"><svg class="ic sm"><use href="#i-file"/></svg>Экспорт CSV</button>
     </div>
     <div id="histList"></div>
     <div class="aboutline">
-      ООО «ПБР» · склад СМР · приложение v19 · разработчик Байгулов К. А.<br>
+      ООО «ПБР» · склад СМР · приложение v20 · разработчик Байгулов К. А.<br>
+      <span id="empAbout"></span><br>
       <span class="link" id="tourRestart">Пройти обучение снова</span> ·
+      <span class="link" id="empLogout">Выйти (смена сотрудника)</span><br>
       горячие клавиши: / — поиск, 1/2/3 — разделы, F5 — обновить, Esc — закрыть
     </div>
   </div>
@@ -330,6 +362,80 @@ async function apiPostSafe(action,payload){
     return {ok:true,queued:true};
   }
 }
+
+/* ========== СОТРУДНИКИ (F7) ========== */
+var LS_EMP="smr_emp", LS_EMPCACHE="smr_emp_cache", LS_HISTMINE="smr_hist_mine";
+var EMP=null;
+try{EMP=JSON.parse(localStorage.getItem(LS_EMP)||"null");}catch(e){EMP=null;}
+function empName(){return EMP?EMP.name:"";}
+function getEmpCache(){try{return JSON.parse(localStorage.getItem(LS_EMPCACHE)||"{}");}catch(e){return {};}}
+async function hashPin(pin){
+  try{
+    var buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode("pbr:"+pin));
+    return Array.from(new Uint8Array(buf)).map(function(b){return b.toString(16).padStart(2,"0");}).join("");
+  }catch(e){
+    var h=5381,s="pbr:"+pin;
+    for(var i=0;i<s.length;i++){h=((h<<5)+h+s.charCodeAt(i))|0;}
+    return "w"+(h>>>0);
+  }
+}
+function updateEmpLabels(){
+  var chip=document.getElementById("empChip");
+  if(EMP){chip.textContent=EMP.name;chip.classList.remove("hidden");}
+  else chip.classList.add("hidden");
+  document.getElementById("empLine").textContent=EMP?("Сотрудник: "+EMP.name):"";
+  document.getElementById("empAbout").textContent=EMP?("Смена: "+EMP.name):"Сотрудник не выбран";
+  var mine=localStorage.getItem(LS_HISTMINE)==="1";
+  var bm=document.getElementById("btnHistMine");
+  bm.classList.toggle("on",mine);
+  bm.textContent=mine?"Только мои: вкл":"Только мои";
+}
+function showLogin(){document.getElementById("loginOverlay").classList.remove("hidden");}
+function hideLogin(){document.getElementById("loginOverlay").classList.add("hidden");}
+async function loginSuccess(emp,pin,offline){
+  EMP=emp;
+  localStorage.setItem(LS_EMP,JSON.stringify(emp));
+  var h=await hashPin(pin);
+  var cache=getEmpCache();cache[h]=emp;
+  localStorage.setItem(LS_EMPCACHE,JSON.stringify(cache));
+  hideLogin();
+  updateEmpLabels();
+  renderHistory();
+  toast((offline?"Вход офлайн: ":"Здравствуйте, ")+emp.name);
+  if(!localStorage.getItem("smr_onboard_done")){tourStarted=true;setTimeout(tourStart,600);}
+}
+async function doLogin(){
+  var pin=document.getElementById("loginPin").value.trim();
+  var st=document.getElementById("loginStatus");
+  st.textContent="";
+  if(!pin){st.textContent="Введите PIN";return;}
+  var btn=document.getElementById("loginGo");btn.disabled=true;
+  try{
+    var r=await apiPost("login",{pin:pin});
+    var j=await r.json();
+    if(j&&j.ok&&j.emp){await loginSuccess(j.emp,pin,false);}
+    else{st.textContent=(j&&j.error)||"Неверный PIN";}
+  }catch(e){
+    var h=await hashPin(pin);
+    var cache=getEmpCache();
+    if(cache[h]){await loginSuccess(cache[h],pin,true);}
+    else{st.textContent="Нет связи: этот PIN ещё не входил на этом устройстве";}
+  }finally{btn.disabled=false;}
+}
+document.getElementById("loginGo").onclick=doLogin;
+document.getElementById("loginPin").addEventListener("keydown",function(e){if(e.key==="Enter")doLogin();});
+document.getElementById("empLogout").onclick=function(){
+  if(!confirm("Выйти и сменить сотрудника?"))return;
+  EMP=null;localStorage.removeItem(LS_EMP);
+  stopCamera();stopVoice();
+  updateEmpLabels();showLogin();
+  document.getElementById("loginPin").value="";
+};
+document.getElementById("btnHistMine").onclick=function(){
+  var mine=localStorage.getItem(LS_HISTMINE)==="1";
+  localStorage.setItem(LS_HISTMINE,mine?"0":"1");
+  updateEmpLabels();renderHistory();
+};
 
 /* ========== STATE ========== */
 var DATA=null, curSheet=null, sortState={col:-1,dir:1}, viewList=[];
@@ -598,7 +704,6 @@ function renderChips(){
     box.appendChild(c);
   });
 }
-/* F6: недавние запросы + частые позиции */
 function getRecent(){try{return JSON.parse(localStorage.getItem(LS_RECENT)||"[]");}catch(e){return [];}}
 function pushRecent(q){
   if(!q)return;
@@ -826,7 +931,7 @@ function openContainerCard(containerName){
   hideSuggest();
 }
 
-/* ========== КАРТОЧКА ПОЗИЦИИ + РЕДАКТОР + ПЕРЕНОС (F5) ========== */
+/* ========== КАРТОЧКА + РЕДАКТОР + ПЕРЕНОС ========== */
 var editCtx=null;
 function openCard(row,sheetName,rowIdx){
   var s=DATA.sheets[sheetName];
@@ -866,7 +971,7 @@ function openMove(sheetName,rowIdx,invIdx){
       var msg="Перенести позицию:\n"+row[ix.name]+"\n\nНовое место: «"+c+"»"+(shelf?" / полка «"+shelf+"»":" (без полки)")+
               "\n\nБудет поставлена правка места хранения в Excel.";
       if(!confirm(msg))return;
-      apiPostSafe("update",{device:deviceId(),sheet:sheetName,buh:buh,place:c,shelf:shelf}).then(function(res){
+      apiPostSafe("update",{device:deviceId(),employee:empName(),sheet:sheetName,buh:buh,place:c,shelf:shelf}).then(function(res){
         if(ix.place>=0)row[ix.place]=c;
         if(ix.shelf>=0)row[ix.shelf]=shelf;
         localStorage.setItem(LS_KEY,JSON.stringify(DATA));
@@ -909,7 +1014,7 @@ document.getElementById("editSave").onclick=async function(){
   var factV=document.getElementById("editFact").value.trim();
   var placeV=document.getElementById("editPlace").value.trim();
   var shelfV=document.getElementById("editShelf").value.trim();
-  var payload={device:deviceId(),sheet:editCtx.sheet,buh:editCtx.buh};
+  var payload={device:deviceId(),employee:empName(),sheet:editCtx.sheet,buh:editCtx.buh};
   var changed=false;
   if(factV!==""){payload.fact=factV;changed=true;}
   if(editCtx.orig.place!==null&&placeV!==editCtx.orig.place){payload.place=placeV;changed=true;}
@@ -990,7 +1095,7 @@ async function loadData(){
     document.getElementById("emptyState").classList.remove("hidden");
     document.getElementById("emptyText").textContent="Нет данных. Проверьте соединение и нажмите обновить.";
   }
-  if(!tourStarted&&!localStorage.getItem("smr_onboard_done")){
+  if(EMP&&!tourStarted&&!localStorage.getItem("smr_onboard_done")){
     tourStarted=true;
     setTimeout(tourStart,700);
   }
@@ -1196,7 +1301,7 @@ function serverSaveDraft(){
     key:invDraftKey,
     container:scopes.length?scopes[0].container:(invContainer||""),
     shelf:scopes.length?(scopes[0].shelf||""):(invShelf||""),
-    device:deviceId(),hideZero:invHideZero,items:invItems
+    device:deviceId(),employee:empName(),hideZero:invHideZero,items:invItems
   });
 }
 function serverDeleteDraft(){
@@ -1393,7 +1498,8 @@ function enterInvMode(askDraft){
       if(!list.length)return;
       if(!confirm("На сервере есть сохранённые инвентаризации ("+list.length+"). Открыть список для продолжения?"))return;
       var labels=list.map(function(x){
-        return x.saved_at+" · "+(x.container||"—")+(x.shelf?" / "+x.shelf:"")+" · позиций: "+x.items_count+" · "+x.device;
+        return x.saved_at+" · "+(x.container||"—")+(x.shelf?" / "+x.shelf:"")+" · позиций: "+x.items_count+
+               (x.employee?" · "+x.employee:"");
       });
       openPicker(null,labels,"Черновики инвентаризации (сервер)",function(label){
         var i=labels.indexOf(label);
@@ -1544,7 +1650,8 @@ function checkDuplicates(scopes,cb){
       .then(function(r){return r.json();})
       .then(function(j){
         (j.prev||[]).forEach(function(p){
-          warns.push("· "+sc.container+(sc.shelf?" / "+sc.shelf:"")+": сегодня в "+p.time+" ("+p.rows+" строк, устр. "+p.device+")");
+          warns.push("· "+sc.container+(sc.shelf?" / "+sc.shelf:"")+": сегодня в "+p.time+
+                     " ("+p.rows+" строк"+(p.employee?", "+p.employee:"")+")");
         });
       })
       .catch(function(){})
@@ -1579,7 +1686,7 @@ document.getElementById("btnInvFinish").onclick=function(){
   checkDuplicates(scopes,function(warn){
     if(!confirm(warn+"Завершить инвентаризацию: "+scopeTxt+"?\nПозиций в отчёте: "+items.length+
                 "\nиз них не отсканировано: "+missing.length)){btn.disabled=false;return;}
-    apiPostSafe("inventory",{device:deviceId(),container:scopes[0].container,shelf:scopes[0].shelf||"",
+    apiPostSafe("inventory",{device:deviceId(),employee:empName(),container:scopes[0].container,shelf:scopes[0].shelf||"",
       summary:summ,items:items})
       .then(function(res){
         btn.disabled=false;
@@ -1589,7 +1696,8 @@ document.getElementById("btnInvFinish").onclick=function(){
         var box=document.getElementById("invSummary");
         box.classList.remove("hidden");
         var headTxt=queued?"Инвентаризация ПОСТАВЛЕНА В ОЧЕРЕДЬ (нет сети)":"Инвентаризация отправлена";
-        box.innerHTML="<b>"+headTxt+"</b><br>"+esc(scopeTxt)+
+        box.innerHTML="<b>"+headTxt+"</b>"+(EMP?" · ответственный: "+esc(EMP.name):"")+
+          "<br>"+esc(scopeTxt)+
           "<br>Всего позиций: "+summ.total+
           "<br>Совпало: <span class='st-ok'>"+summ.ok+"</span>"+
           "<br>Расхождения/не найдены: <span class='st-bad'>"+(summ.total-summ.ok)+"</span>"+
@@ -1617,7 +1725,7 @@ function applyInventoryToFact(){
     var done=0;
     for(var c=0;c<chunks.length;c++){
       await Promise.all(chunks[c].map(function(it){
-        return apiPostSafe("update",{device:deviceId(),sheet:it.sheet,buh:it.buh,fact:String(it.counted)});
+        return apiPostSafe("update",{device:deviceId(),employee:empName(),sheet:it.sheet,buh:it.buh,fact:String(it.counted)});
       }));
       done+=chunks[c].length;
       toast("Записано позиций: "+done+" / "+cand.length);
@@ -1672,7 +1780,8 @@ function handleCode(raw,source){
   document.getElementById("scanFound").textContent=scanFoundTotal;
   pushHistory({t:Date.now(),raw:raw,norm:norm,found:hits.length>0,
     sheet:hits.length?hits[0].sheet:"",
-    name:hits.length?String(hits[0].row[IDX_BY_SHEET[hits[0].sheet].name]):"",source:source});
+    name:hits.length?String(hits[0].row[IDX_BY_SHEET[hits[0].sheet].name]):"",
+    emp:EMP?EMP.id:"",source:source});
   sendScan(raw,norm,hits,source);
   if(invMode){invHandle(raw,norm,hits);return;}
   feedback(hits.length>0);
@@ -1722,7 +1831,7 @@ function handleCode(raw,source){
     name:hits.length?String(hits[0].row[IDX_BY_SHEET[hits[0].sheet].name]):""});
 }
 function sendScan(raw,norm,hits,source){
-  apiPostSafe("scan",{device:deviceId(),raw:raw,normalized:norm,
+  apiPostSafe("scan",{device:deviceId(),employee:empName(),raw:raw,normalized:norm,
     found:hits.length>0,sheet:hits.length?hits[0].sheet:"",
     item:hits.length?String(hits[0].row[IDX_BY_SHEET[hits[0].sheet].name]):"",source:source});
 }
@@ -1737,7 +1846,9 @@ function pushHistory(rec){
 function renderHistory(){
   var box=document.getElementById("histList");box.innerHTML="";
   var h=getHistory();
-  if(!h.length){box.innerHTML='<div class="hitem"><div class="hn">История пуста</div></div>';return;}
+  var mine=localStorage.getItem(LS_HISTMINE)==="1";
+  if(mine&&EMP)h=h.filter(function(r){return r.emp===EMP.id;});
+  if(!h.length){box.innerHTML='<div class="hitem"><div class="hn">'+(mine?"Пока нет ваших сканов":"История пуста")+"</div></div>";return;}
   var wrap=document.createElement("div");
   wrap.className="tl";
   h.forEach(function(rec){
@@ -1746,7 +1857,7 @@ function renderHistory(){
     var inner=document.createElement("div");
     inner.className="hitem"+(rec.found?"":" notfound");
     var dt=new Date(rec.t);
-    inner.innerHTML='<div class="ht">'+dt.toLocaleString("ru-RU")+' · '+(rec.source==="manual"?"ручной ввод":"QR")+'</div>'+
+    inner.innerHTML='<div class="ht">'+dt.toLocaleString("ru-RU")+' · '+(rec.source==="manual"?"ручной ввод":"QR")+"</div>"+
       '<div class="hn">'+esc(rec.found?rec.name:"НЕ НАЙДЕНО: "+rec.raw)+'</div>'+
       '<div class="hc">код: '+esc(rec.raw)+' → '+esc(rec.norm||"—")+(rec.sheet?" · лист "+esc(rec.sheet):"")+"</div>";
     d.appendChild(inner);
@@ -1782,11 +1893,11 @@ var TOUR_STEPS=[
   {view:"search",sel:"#tabs",title:"Два склада",
    text:"Переключайтесь между листами СМР и Кладовая. Сортировка — тап по заголовку столбца, ширина столбцов — перетаскиванием края."},
   {view:"scan",sel:"#btnStart",title:"QR-сканер",
-   text:"Сканируйте этикетки позиций, QR полок и контейнеров. Вспышка и зум помогут в тёмном контейнере."},
+   text:"Сканируйте этикетки позиций, QR полок и контейнеров. Все сканы подписываются вашим именем."},
   {view:"scan",sel:"#invSwitch",title:"Инвентаризация и перенос",
    text:"Отсканируйте QR полки — контейнер и полка выберутся сами. Кнопка-коробка в строке переносит позицию в другое место."},
-  {view:"search",sel:"#toolbar",title:"Тема, складской режим, обновление",
-   text:"Кнопка «рамка» — складской режим (крупно и контрастно). Кнопка темы — светлая/тёмная/авто. Значок обновления тянет свежие данные."}
+  {view:"history",sel:"#btnHistMine",title:"Личный кабинет",
+   text:"Кнопка «Только мои» показывает ваши сканы. Выйти и сменить сотрудника — ссылкой внизу раздела."}
 ];
 var tourIdx=-1;
 function tourStart(){
@@ -1910,6 +2021,10 @@ document.addEventListener("click",function(e){
 document.getElementById("cardClose").onclick=function(){document.getElementById("cardOverlay").classList.add("hidden");};
 document.getElementById("cardOverlay").onclick=function(e){if(e.target===this)this.classList.add("hidden");};
 document.getElementById("refreshBtn").onclick=function(){loadData();};
+
+/* ========== СТАРТ ========== */
+updateEmpLabels();
+if(!EMP)showLogin();
 loadData();
 </script>
 </body>
