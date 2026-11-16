@@ -1,4 +1,4 @@
-const CACHE_NAME = "smr-search-v7";
+const CACHE_NAME = "smr-search-v8";
 const SHELL = [
   "./",
   "./index.html",
