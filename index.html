@@ -13,7 +13,6 @@
 <title>ПБР · СМР Склад</title>
 <script src="html5-qrcode.min.js"></script>
 <style>
-/* ===== v16: бренд-дополнения ===== */
 .sidecredits{margin-top:12px;padding:10px 12px;font-size:10.5px;color:var(--text-3);line-height:1.5;border-top:1px solid var(--border)}
 .prog{margin:8px 0}
 .progtop{font-size:12px;color:var(--text-2);font-weight:600;margin-bottom:4px;font-variant-numeric:tabular-nums}
@@ -32,7 +31,6 @@
 .tlitem.bad::before{background:var(--bad);box-shadow:0 0 0 3px var(--bad-soft)}
 .aboutline{margin-top:14px;font-size:11px;color:var(--text-3);text-align:center;line-height:1.7}
 .aboutline .link{cursor:pointer;text-decoration:underline;color:var(--text-2)}
-/* ===== v17: плитки быстрых действий ===== */
 #tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 16px 0}
 body[data-device="desktop"] #tiles{display:none}
 .tile{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 6px;border:1px solid var(--border);
@@ -40,7 +38,6 @@ body[data-device="desktop"] #tiles{display:none}
   cursor:pointer;box-shadow:var(--sh-1);transition:transform .05s}
 .tile:active{transform:scale(.97)}
 .tile .ic{width:22px;height:22px;color:var(--primary)}
-/* ===== v17: складской режим ===== */
 body.wh-mode{font-size:17px;--text-2:var(--text);--border:var(--border-2)}
 body.wh-mode .btn{min-height:52px;font-size:16px;padding:12px 16px}
 body.wh-mode .btn.icon{min-height:44px;min-width:44px}
@@ -59,7 +56,6 @@ body.wh-mode .tile{padding:16px 6px;font-size:13px}
 body.wh-mode .seg button{padding:12px 0;font-size:16px}
 body.wh-mode .pitem{padding:14px 12px;font-size:16px}
 body.wh-mode .kv{font-size:16px;padding:10px 0}
-/* ===== v17: онбординг-тур ===== */
 #tourMask{position:fixed;inset:0;z-index:95;pointer-events:none}
 #tourRing{position:fixed;border:2px solid var(--primary);border-radius:12px;pointer-events:none;
   box-shadow:0 0 0 9999px rgba(10,14,20,.55);transition:all .2s}
@@ -174,7 +170,7 @@ body.wh-mode .kv{font-size:16px;padding:10px 0}
     </div>
     <div id="scanStatus">Камера выключена</div>
     <div class="manual">
-      <input id="manualCode" placeholder="Ввести код вручную (например 00-00081586)">
+      <input id="manualCode" placeholder="Код вручную: 00-00081586 или SHELF:контейнер|полка">
       <button id="btnManual" class="btn">Найти</button>
     </div>
 
@@ -211,7 +207,7 @@ body.wh-mode .kv{font-size:16px;padding:10px 0}
     </div>
     <div id="histList"></div>
     <div class="aboutline">
-      ООО «ПБР» · склад СМР · приложение v17 · разработчик Байгулов К. А.<br>
+      ООО «ПБР» · склад СМР · приложение v18 · разработчик Байгулов К. А.<br>
       <span class="link" id="tourRestart">Пройти обучение снова</span> ·
       горячие клавиши: / — поиск, 1/2/3 — разделы, F5 — обновить, Esc — закрыть
     </div>
@@ -284,7 +280,7 @@ body.wh-mode .kv{font-size:16px;padding:10px 0}
 
 <script>
 "use strict";
-/* ========== API (Google Apps Script) ========== */
+/* ========== API ========== */
 var API_BASE="https://script.google.com/macros/s/AKfycbw6OWtl-3aLFgQtb7pAQ3DNL0BgpXsRUsxhjTX3mNgK6smxgMLbNROymNFQrwjD454tLg/exec";
 var API_TOKEN="smr-K7m2Qx9Zp4";
 function apiGet(action,params){
@@ -370,12 +366,12 @@ document.getElementById("themeBtn").onclick=function(){
 };
 applyTheme();
 
-/* ========== СКЛАДСКОЙ РЕЖИМ (U2) ========== */
+/* ========== СКЛАДСКОЙ РЕЖИМ ========== */
 function applyWh(){
   var on=localStorage.getItem("smr_wh")==="1";
   document.body.classList.toggle("wh-mode",on);
   document.getElementById("whBtn").classList.toggle("on",on);
-  document.getElementById("whBtn").title=on?"Складской режим: вкл (нажмите чтобы выключить)":"Складской режим (крупно и контрастно)";
+  document.getElementById("whBtn").title=on?"Складской режим: вкл":"Складской режим (крупно и контрастно)";
 }
 document.getElementById("whBtn").onclick=function(){
   var on=localStorage.getItem("smr_wh")==="1";
@@ -425,7 +421,7 @@ function toast(t){
 }
 function ruCmp(a,b){return normText(a).localeCompare(normText(b),"ru");}
 
-/* ========== TABLE WIDTHS ========== */
+/* ========== ШИРИНЫ СТОЛБЦОВ ========== */
 function colWidthsFor(sheetName){
   try{var all=JSON.parse(localStorage.getItem(COLW_KEY)||"{}");return all[sheetName]||{};}catch(e){return {};}
 }
@@ -488,7 +484,7 @@ function attachResizer(th,sheetName,header,colIndex){
   });
 }
 
-/* ========== SEARCH CORE ========== */
+/* ========== ПОИСК ========== */
 function sheet(){return DATA.sheets[curSheet];}
 function IX(){return IDX_BY_SHEET[curSheet];}
 function computeAllIdx(){
@@ -707,7 +703,7 @@ document.getElementById("pickerOverlay").onclick=function(e){if(e.target===this)
 document.getElementById("btnPickPlace").onclick=function(){openPicker("editPlace",PLACE_OPTIONS,"Контейнер / площадка");};
 document.getElementById("btnPickShelf").onclick=function(){openPicker("editShelf",SHELF_OPTIONS,"Полка / место");};
 
-/* ========== CONTAINER CARD ========== */
+/* ========== КАРТОЧКА КОНТЕЙНЕРА ========== */
 function findItemsInContainer(containerName){
   var out=[];
   Object.keys(DATA.sheets).forEach(function(name){
@@ -770,7 +766,7 @@ function openContainerCard(containerName){
   hideSuggest();
 }
 
-/* ========== POSITION CARD + EDITOR ========== */
+/* ========== КАРТОЧКА ПОЗИЦИИ + РЕДАКТОР ========== */
 var editCtx=null;
 function openCard(row,sheetName,rowIdx){
   var s=DATA.sheets[sheetName];
@@ -851,7 +847,7 @@ document.getElementById("editSave").onclick=async function(){
   }
 };
 
-/* ========== SUGGEST / BADGE / DATA ========== */
+/* ========== ДАННЫЕ ========== */
 function hideSuggest(){document.getElementById("suggest").style.display="none";}
 function showSuggest(items,q){
   var box=document.getElementById("suggest");
@@ -911,7 +907,7 @@ async function loadData(){
   }
 }
 
-/* ========== SCANNER ========== */
+/* ========== СКАНЕР ========== */
 var scanner=null, scanning=false, torchOn=false, lastCode="", lastCodeTime=0;
 var facing="environment";
 var soundOn=localStorage.getItem("smr_sound")!=="0";
@@ -992,7 +988,7 @@ async function startCamera(){
     document.getElementById("zoomWrap").classList.add("hidden");
     document.getElementById("zoom").value=1;
     document.querySelectorAll(".zpreset").forEach(function(b){b.classList.remove("on");});
-    scanStatus("Камера работает. Наведите рамку на QR/штрих-код.");
+    scanStatus("Камера работает. Наведите рамку на QR позиции, полки или контейнера.");
     setupTorchZoom();
     setTimeout(function(){if(scanning)setupTorchZoom();},1500);
     renderSession();
@@ -1080,7 +1076,7 @@ function renderSession(){
       d.className="schip"+(s.found?"":" notfound");
       var dt=new Date(s.t);
       d.innerHTML='<span class="st">'+dt.toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit",second:"2-digit"})+'</span><span class="sn">'+esc(s.found?s.name:"НЕ НАЙДЕНО: "+s.raw)+"</span>";
-      if(s.found)d.onclick=function(){openCard(DATA.sheets[s.sheet].rows[s.rowIdx],s.sheet,s.rowIdx);};
+      if(s.found&&s.rowIdx>=0&&s.sheet)d.onclick=function(){openCard(DATA.sheets[s.sheet].rows[s.rowIdx],s.sheet,s.rowIdx);};
       box.appendChild(d);
     });
   }catch(e){}
@@ -1089,7 +1085,7 @@ function pushSession(rec){
   try{sessionScans.unshift(rec);if(sessionScans.length>6)sessionScans.length=6;renderSession();}catch(e){}
 }
 
-/* ========== INVENTORY ========== */
+/* ========== ИНВЕНТАРИЗАЦИЯ ========== */
 var invMode=false, invContainer=null, invShelf=null, invItems=[], invLastItems=null;
 var invHideZero=localStorage.getItem(LS_INVZERO)==="1";
 var invDraftKey=null;
@@ -1346,7 +1342,7 @@ document.getElementById("btnInvPause").onclick=function(){
   toast("Инвентаризация сохранена (телефон + сервер) — продолжите позже");
 };
 
-/* voice */
+/* голос */
 var recog=null, recogOn=false;
 var RU_UNITS={"ноль":0,"один":1,"одна":1,"два":2,"две":2,"три":3,"четыре":4,"пять":5,"шесть":6,"семь":7,"восемь":8,"девять":9,"десять":10,"одиннадцать":11,"двенадцать":12,"тринадцать":13,"четырнадцать":14,"пятнадцать":15,"шестнадцать":16,"семнадцать":17,"восемнадцать":18,"девятнадцать":19};
 var RU_TENS={"двадцать":20,"тридцать":30,"сорок":40,"пятьдесят":50,"шестьдесят":60,"семьдесят":70,"восемьдесят":80,"девяносто":90};
@@ -1399,7 +1395,7 @@ document.getElementById("btnInvVoice").onclick=function(){
 function invHandle(raw,norm,hits){
   if(!invContainer){
     feedback(false);
-    toast("Сначала выберите контейнер инвентаризации");
+    toast("Сначала выберите контейнер или отсканируйте QR полки");
     openPicker(null,PLACE_OPTIONS,"Контейнер инвентаризации",function(v){
       invContainer=v;invShelf=null;updateInvHead();renderInvList();
     });
@@ -1551,8 +1547,27 @@ function exportInvCsv(){
   a.click();
 }
 
-/* ========== SCAN PIPELINE ========== */
+/* ========== ОБРАБОТКА СКАНА ========== */
 function handleCode(raw,source){
+  /* QR полки: SHELF:контейнер|полка */
+  if(raw.indexOf("SHELF:")===0){
+    var body=raw.slice(6);
+    var parts=body.split("|");
+    var c=(parts[0]||"").trim(), s=(parts[1]||"").trim();
+    feedback(true);
+    showView("scan");
+    if(!invMode)enterInvMode(false);
+    invContainer=c||null;
+    invShelf=s||null;
+    updateInvHead();
+    renderInvList();
+    if(!scanning)startCamera();
+    toast("Инвентаризация: "+(c||"—")+(s?" · полка "+s:""));
+    pushSession({t:Date.now(),raw:raw,norm:"",found:true,sheet:"",rowIdx:-1,
+      name:"Полка: "+(s||"—")+" · "+(c||"—"),source:source});
+    return;
+  }
+  /* QR контейнера: CONT:контейнер */
   if(raw.indexOf("CONT:")===0){
     var cname=raw.slice(5);
     feedback(true);
@@ -1618,7 +1633,7 @@ function sendScan(raw,norm,hits,source){
     item:hits.length?String(hits[0].row[IDX_BY_SHEET[hits[0].sheet].name]):"",source:source});
 }
 
-/* ========== HISTORY (timeline) ========== */
+/* ========== ИСТОРИЯ ========== */
 function getHistory(){try{return JSON.parse(localStorage.getItem(LS_SCANS)||"[]");}catch(e){return [];}}
 function pushHistory(rec){
   var h=getHistory();h.unshift(rec);if(h.length>200)h.length=200;
@@ -1666,18 +1681,18 @@ document.getElementById("tourRestart").onclick=function(){
   tourStart();
 };
 
-/* ========== ОНБОРДИНГ-ТУР (U1) ========== */
+/* ========== ОНБОРДИНГ ========== */
 var TOUR_STEPS=[
   {view:"search",sel:"#q",title:"Мгновенный поиск",
    text:"Введите название или бух. номер — подсказки появятся сразу. Поиск работает и без сети, по последним сохранённым данным."},
   {view:"search",sel:"#tabs",title:"Два склада",
    text:"Переключайтесь между листами СМР и Кладовая. Сортировка — тап по заголовку столбца, ширина столбцов — перетаскиванием края."},
   {view:"scan",sel:"#btnStart",title:"QR-сканер",
-   text:"Включите камеру и сканируйте этикетки позиций и контейнеров. Вспышка и зум помогут в тёмном контейнере."},
+   text:"Сканируйте этикетки позиций, QR полок и контейнеров. Вспышка и зум помогут в тёмном контейнере."},
   {view:"scan",sel:"#invSwitch",title:"Инвентаризация",
-   text:"Включите режим, выберите контейнер и полку, сканируйте позиции. Черновик сохраняется автоматически — можно продолжить позже."},
+   text:"Отсканируйте QR полки — контейнер и полка выберутся сами. Или включите режим вручную. Черновик сохраняется автоматически."},
   {view:"search",sel:"#toolbar",title:"Тема, складской режим, обновление",
-   text:"Кнопка «рамка» — складской режим (крупно и контрастно). Кнопка темы — светлая/тёмная/авто. Значок обновления тянет свежие данные; бейдж показывает их время."}
+   text:"Кнопка «рамка» — складской режим (крупно и контрастно). Кнопка темы — светлая/тёмная/авто. Значок обновления тянет свежие данные."}
 ];
 var tourIdx=-1;
 function tourStart(){
@@ -1722,7 +1737,7 @@ document.getElementById("tourNext").onclick=tourNext;
 document.getElementById("tourSkip").onclick=tourEnd;
 window.addEventListener("resize",function(){if(tourIdx>=0)tourShow();});
 
-/* ========== ПЛИТКИ (U3) ========== */
+/* ========== ПЛИТКИ ========== */
 document.getElementById("tileScan").onclick=function(){showView("scan");};
 document.getElementById("tileInv").onclick=function(){
   showView("scan");
@@ -1731,7 +1746,7 @@ document.getElementById("tileInv").onclick=function(){
 document.getElementById("tileHist").onclick=function(){showView("history");};
 document.getElementById("tileRefresh").onclick=function(){loadData();toast("Обновляю данные…");};
 
-/* ========== ГОРЯЧИЕ КЛАВИШИ (U7) ========== */
+/* ========== ГОРЯЧИЕ КЛАВИШИ ========== */
 document.addEventListener("keydown",function(e){
   var t=e.target;
   var typing=t&&(t.tagName==="INPUT"||t.tagName==="TEXTAREA"||t.tagName==="SELECT"||t.isContentEditable);
@@ -1751,7 +1766,7 @@ document.addEventListener("keydown",function(e){
   else if(e.key==="3"){showView("history");}
 });
 
-/* ========== NAV ========== */
+/* ========== НАВИГАЦИЯ ========== */
 function showView(name){
   ["search","scan","history"].forEach(function(v){
     document.getElementById("view-"+v).classList.toggle("hidden",v!==name);
@@ -1772,7 +1787,7 @@ document.querySelectorAll(".sideitem").forEach(function(b){
   b.onclick=function(){showView(b.dataset.view);};
 });
 
-/* ========== SEARCH EVENTS ========== */
+/* ========== СОБЫТИЯ ПОИСКА ========== */
 var debTimer=null;
 document.getElementById("q").addEventListener("input",function(){
   clearTimeout(debTimer);
