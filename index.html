@@ -1097,7 +1097,8 @@ async function loadData(){
   try{
     var r=await apiGet("data");
     if(!r.ok)throw new Error("http "+r.status);
-    DATA=await r.json();
+    var j=await r.json();
+    DATA=(j&&j.data)?j.data:j;
     localStorage.setItem(LS_KEY,JSON.stringify(DATA));
     renderSyncBadge(false);
     pendingFlush();
@@ -1335,7 +1336,8 @@ function serverDeleteDraft(){
 }
 function saveInvDraft(){if(!invMode)return;saveInvDraftLocal();serverSaveDraft();}
 function loadServerDraft(key){
-  apiGet("draft",{key:key}).then(function(r){return r.json();}).then(function(d){
+  apiGet("draft",{key:key}).then(function(r){return r.json();}).then(function(j){
+    var d=(j&&j.draft)?j.draft:j;
     if(!d||!d.items||!d.items.length){toast("Черновик пуст");return;}
     invItems=d.items||[];
     invContainer=d.container||null;
