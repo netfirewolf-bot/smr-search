@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-store, must-revalidate">
+<title>ПБР · Инструменты ПК</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+html,body{height:100%}
+body{display:flex;flex-direction:column;padding-bottom:0;overflow:hidden}
+.tbar{display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px 0}
+.tbar .btn.on{background:var(--primary);color:#fff}
+.abar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 16px}
+.abar .sp{flex:1}
+#status{font-size:12px;color:var(--text-2);min-height:16px}
+#frame{flex:1;width:100%;border:0;background:var(--surface-2);margin:0 16px 16px;border:1px solid var(--border);border-radius:var(--r-md)}
+.hintline{padding:0 16px 8px;font-size:11.5px;color:var(--text-3)}
+.backbtn{text-decoration:none}
+</style>
+</head>
+<body data-device="desktop">
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+<symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5 8 12l7 7"/></symbol>
+<symbol id="i-dash" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="10" rx="2"/><rect x="13" y="3" width="8" height="6" rx="2"/><rect x="13" y="11" width="8" height="10" rx="2"/><rect x="3" y="15" width="8" height="6" rx="2"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.64-6.36L21 8"/><path d="M21 3v5h-5"/></symbol>
+<symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4 10 14"/><path d="M20 14v6H4V4h6"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.6 4.6l2.1 2.1m10.6 10.6 2.1 2.1M19.4 4.6l-2.1 2.1M6.7 17.3l-2.1 2.1"/></symbol>
+<symbol id="i-box" viewBox="0 0 24 24"><path d="m12 2 9 5v10l-9 5-9-5V7z"/><path d="M3 7l9 5 9-5"/><path d="M12 12v10"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
+</svg>
+
+<header id="toolbar">
+  <span class="lights"><i class="r"></i><i class="y"></i><i class="g"></i></span>
+  <a class="btn icon backbtn" href="index.html" title="Назад в приложение"><svg class="ic"><use href="#i-back"/></svg></a>
+  <h1>Инструменты ПК</h1>
+  <div class="badge" id="baseBadge">…</div>
+  <div style="flex:1"></div>
+  <button id="btnGear" class="btn icon" title="Адрес ПК-сервера"><svg class="ic"><use href="#i-gear"/></svg></button>
+  <button id="btnReload" class="btn icon" title="Обновить кадр"><svg class="ic"><use href="#i-refresh"/></svg></button>
+  <button id="btnExt" class="btn icon" title="Открыть в новом окне"><svg class="ic"><use href="#i-ext"/></svg></button>
+</header>
+
+<div class="tbar" id="tabs"></div>
+<div class="abar">
+  <button id="btnSync" class="btn"><svg class="ic sm"><use href="#i-refresh"/></svg>Синхронизировать</button>
+  <button id="btnBackup" class="btn"><svg class="ic sm"><use href="#i-box"/></svg>Сделать бэкап</button>
+  <span class="sp"></span>
+  <span id="status"></span>
+</div>
+<div class="hintline">Если окно пусто: проверьте, что SMR Sync запущен на ПК (трей), нажмите «⚙» и укажите адрес ПК, либо «Открыть в новом окне».</div>
+<iframe id="frame" title="Инструмент"></iframe>
+
+<script>
+"use strict";
+var MANUAL_URL="https://netfirewolf-bot.github.io/smr-search/manual.html";
+var TOOLS=[
+  {id:"dash",label:"Дашборд",pc:"/dashboard.html"},
+  {id:"docs",label:"Документы",pc:"/docs.html"},
+  {id:"print",label:"Печать QR",pc:"/print.html"},
+  {id:"report",label:"Отчёт инвент.",pc:"/report.html"},
+  {id:"manual",label:"Памятка",pc:null}
+];
+var cur=null;
+function pcBase(){
+  if(location.hostname==="localhost"||location.hostname==="127.0.0.1")return "";
+  return localStorage.getItem("smr_pc_base")||"http://localhost:8433";
+}
+function toolUrl(t){
+  if(t.id==="manual")return MANUAL_URL;
+  return pcBase()+t.pc;
+}
+function setStatus(t){document.getElementById("status").textContent=t||"";}
+function badge(){
+  var b=pcBase();
+  document.getElementById("baseBadge").textContent=b===""?"ПК: этот же сервер (localhost)":"ПК: "+b;
+}
+function openTool(id){
+  var t=TOOLS.find(function(x){return x.id===id;})||TOOLS[0];
+  cur=t;
+  document.querySelectorAll("#tabs .btn").forEach(function(b){b.classList.toggle("on",b.dataset.id===t.id);});
+  document.getElementById("frame").src=toolUrl(t);
+  document.title="ПБР · "+t.label;
+  setStatus("");
+}
+function buildTabs(){
+  var box=document.getElementById("tabs");box.innerHTML="";
+  TOOLS.forEach(function(t){
+    var b=document.createElement("button");
+    b.className="btn";b.dataset.id=t.id;b.textContent=t.label;
+    b.onclick=function(){openTool(t.id);};
+    box.appendChild(b);
+  });
+}
+document.getElementById("btnReload").onclick=function(){if(cur){document.getElementById("frame").src=toolUrl(cur);setStatus("Кадр обновлён");}};
+document.getElementById("btnExt").onclick=function(){if(cur)window.open(toolUrl(cur),"_blank");};
+document.getElementById("btnGear").onclick=function(){
+  var curBase=pcBase()||"http://localhost:8433";
+  var v=prompt("Адрес ПК-сервера SMR Sync (например http://172.16.7.145:8433).\nПусто = localhost (этот компьютер):",curBase);
+  if(v===null)return;
+  v=v.trim();
+  if(v==="")localStorage.removeItem("smr_pc_base");
+  else localStorage.setItem("smr_pc_base",v.replace(/\/$/,""));
+  badge();
+  if(cur)openTool(cur.id);
+};
+async function pcAction(path,msg){
+  setStatus(msg+"…");
+  try{
+    var r=await fetch(pcBase()+path,{method:"POST"});
+    var j=await r.json().catch(function(){return {};});
+    setStatus(j.ok?(msg+": запущено"):(msg+": ошибка "+(j.error||r.status)));
+  }catch(e){setStatus(msg+": ПК-сервер недоступен ("+e+")");}
+}
+document.getElementById("btnSync").onclick=function(){pcAction("/api/sync_now","Синхронизация");};
+document.getElementById("btnBackup").onclick=function(){pcAction("/api/backup_now","Бэкап");};
+badge();buildTabs();openTool("dash");
+</script>
+</body>
+</html>
