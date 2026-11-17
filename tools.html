@@ -8,14 +8,21 @@
 <link rel="stylesheet" href="styles.css">
 <style>
 html,body{height:100%}
-body{display:flex;flex-direction:column;padding-bottom:0;overflow:hidden}
+body{display:flex;flex-direction:column;overflow:hidden;padding-bottom:0}
 .tbar{display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px 0}
 .tbar .btn.on{background:var(--primary);color:#fff}
 .abar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 16px}
 .abar .sp{flex:1}
 #status{font-size:12px;color:var(--text-2);min-height:16px}
-#frame{flex:1;width:100%;border:0;background:var(--surface-2);margin:0 16px 16px;border:1px solid var(--border);border-radius:var(--r-md)}
-.hintline{padding:0 16px 8px;font-size:11.5px;color:var(--text-3)}
+.framewrap{position:relative;flex:1;margin:0 16px 16px;border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;background:var(--surface-2)}
+#frame{width:100%;height:100%;border:0;display:block}
+#frameLoad{position:absolute;top:10px;right:12px;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-pill);padding:4px 12px;font-size:11px;font-weight:700;color:var(--text-2);display:none;box-shadow:var(--sh-2)}
+#frameLoad.show{display:block}
+.warnbar{display:none;margin:0 16px 8px;padding:9px 12px;border:1px solid color-mix(in srgb,var(--warn) 40%,transparent);
+  background:var(--warn-soft);border-radius:var(--r-sm);font-size:12.5px;color:var(--text);align-items:center;gap:10px}
+.warnbar.show{display:flex}
+.warnbar .sp{flex:1}
 .backbtn{text-decoration:none}
 </style>
 </head>
@@ -27,14 +34,13 @@ body{display:flex;flex-direction:column;padding-bottom:0;overflow:hidden}
 <symbol id="i-ext" viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M20 4 10 14"/><path d="M20 14v6H4V4h6"/></symbol>
 <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3M4.6 4.6l2.1 2.1m10.6 10.6 2.1 2.1M19.4 4.6l-2.1 2.1M6.7 17.3l-2.1 2.1"/></symbol>
 <symbol id="i-box" viewBox="0 0 24 24"><path d="m12 2 9 5v10l-9 5-9-5V7z"/><path d="M3 7l9 5 9-5"/><path d="M12 12v10"/></symbol>
-<symbol id="i-check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
 </svg>
 
 <header id="toolbar">
   <span class="lights"><i class="r"></i><i class="y"></i><i class="g"></i></span>
   <a class="btn icon backbtn" href="index.html" title="Назад в приложение"><svg class="ic"><use href="#i-back"/></svg></a>
   <h1>Инструменты ПК</h1>
-  <div class="badge" id="baseBadge">…</div>
+  <div class="badge" id="pcPill">ПК-сервер: проверка…</div>
   <div style="flex:1"></div>
   <button id="btnGear" class="btn icon" title="Адрес ПК-сервера"><svg class="ic"><use href="#i-gear"/></svg></button>
   <button id="btnReload" class="btn icon" title="Обновить кадр"><svg class="ic"><use href="#i-refresh"/></svg></button>
@@ -42,14 +48,22 @@ body{display:flex;flex-direction:column;padding-bottom:0;overflow:hidden}
 </header>
 
 <div class="tbar" id="tabs"></div>
+<div class="warnbar" id="warn">
+  <span id="warnText">ПК-сервер недоступен или кадр заблокирован браузером.</span>
+  <span class="sp"></span>
+  <button class="btn ghost" id="warnGear">Настроить адрес</button>
+  <button class="btn ghost" id="warnExt">Открыть в новом окне</button>
+</div>
 <div class="abar">
-  <button id="btnSync" class="btn"><svg class="ic sm"><use href="#i-refresh"/></svg>Синхронизировать</button>
-  <button id="btnBackup" class="btn"><svg class="ic sm"><use href="#i-box"/></svg>Сделать бэкап</button>
+  <button id="btnSync" class="btn"><svg class="ic" style="width:16px;height:16px"><use href="#i-refresh"/></svg>Синхронизировать</button>
+  <button id="btnBackup" class="btn"><svg class="ic" style="width:16px;height:16px"><use href="#i-box"/></svg>Сделать бэкап</button>
   <span class="sp"></span>
   <span id="status"></span>
 </div>
-<div class="hintline">Если окно пусто: проверьте, что SMR Sync запущен на ПК (трей), нажмите «⚙» и укажите адрес ПК, либо «Открыть в новом окне».</div>
-<iframe id="frame" title="Инструмент"></iframe>
+<div class="framewrap">
+  <iframe id="frame" title="Инструмент"></iframe>
+  <div id="frameLoad">загрузка…</div>
+</div>
 
 <script>
 "use strict";
@@ -61,28 +75,59 @@ var TOOLS=[
   {id:"report",label:"Отчёт инвент.",pc:"/report.html"},
   {id:"manual",label:"Памятка",pc:null}
 ];
-var cur=null;
+var LS_TOOL="smr_last_tool", LS_BASE="smr_pc_base";
+var cur=null, loadTimer=null;
+
 function pcBase(){
   if(location.hostname==="localhost"||location.hostname==="127.0.0.1")return "";
-  return localStorage.getItem("smr_pc_base")||"http://localhost:8433";
+  return localStorage.getItem(LS_BASE)||"http://localhost:8433";
 }
 function toolUrl(t){
-  if(t.id==="manual")return MANUAL_URL;
+  if(t.pc===null)return MANUAL_URL;
   return pcBase()+t.pc;
 }
 function setStatus(t){document.getElementById("status").textContent=t||"";}
-function badge(){
-  var b=pcBase();
-  document.getElementById("baseBadge").textContent=b===""?"ПК: этот же сервер (localhost)":"ПК: "+b;
+function showLoad(on){document.getElementById("frameLoad").classList.toggle("show",on);}
+function showWarn(on,text){
+  var w=document.getElementById("warn");
+  w.classList.toggle("show",!!on);
+  if(text)document.getElementById("warnText").textContent=text;
 }
-function openTool(id){
+function setPill(txt,ok){
+  var p=document.getElementById("pcPill");
+  p.textContent=txt;
+  p.style.color=ok===true?"var(--ok)":ok===false?"var(--bad)":"";
+}
+function probe(){
+  if(cur&&cur.pc===null){setPill("Памятка: GitHub Pages",true);showWarn(false);return;}
+  var base=pcBase();
+  fetch(base+"/api/health",{cache:"no-store"})
+    .then(function(r){return r.json();})
+    .then(function(j){setPill("ПК-сервер: онлайн · v"+(j.version||""),true);showWarn(false);})
+    .catch(function(){
+      setPill("ПК-сервер: недоступен",false);
+      showWarn(true,"ПК-сервер недоступен по адресу "+(base||"localhost:8433")+". Проверьте, что SMR Sync запущен, или укажите адрес (⚙). Если вы не на этом ПК — используйте «Открыть в новом окне».");
+    });
+}
+function openTool(id,remember){
   var t=TOOLS.find(function(x){return x.id===id;})||TOOLS[0];
   cur=t;
   document.querySelectorAll("#tabs .btn").forEach(function(b){b.classList.toggle("on",b.dataset.id===t.id);});
-  document.getElementById("frame").src=toolUrl(t);
+  var f=document.getElementById("frame");
+  showLoad(true);showWarn(false);
+  f.src=toolUrl(t);
+  clearTimeout(loadTimer);
+  loadTimer=setTimeout(function(){
+    if(!document.getElementById("frameLoad").classList.contains("show"))return;
+    showLoad(false);
+    if(t.pc!==null)showWarn(true,"Кадр не загрузился за 8 сек. Возможно, браузер заблокировал http-адрес ПК из https-страницы (работа не с этого ПК) — нажмите «Открыть в новом окне» или настройте адрес (⚙).");
+  },8000);
   document.title="ПБР · "+t.label;
-  setStatus("");
+  if(remember!==false)localStorage.setItem(LS_TOOL,t.id);
+  if(history.replaceState)history.replaceState(null,"","#"+t.id);
+  probe();
 }
+document.getElementById("frame").onload=function(){showLoad(false);};
 function buildTabs(){
   var box=document.getElementById("tabs");box.innerHTML="";
   TOOLS.forEach(function(t){
@@ -92,29 +137,41 @@ function buildTabs(){
     box.appendChild(b);
   });
 }
-document.getElementById("btnReload").onclick=function(){if(cur){document.getElementById("frame").src=toolUrl(cur);setStatus("Кадр обновлён");}};
-document.getElementById("btnExt").onclick=function(){if(cur)window.open(toolUrl(cur),"_blank");};
-document.getElementById("btnGear").onclick=function(){
+function askBase(){
   var curBase=pcBase()||"http://localhost:8433";
   var v=prompt("Адрес ПК-сервера SMR Sync (например http://172.16.7.145:8433).\nПусто = localhost (этот компьютер):",curBase);
   if(v===null)return;
   v=v.trim();
-  if(v==="")localStorage.removeItem("smr_pc_base");
-  else localStorage.setItem("smr_pc_base",v.replace(/\/$/,""));
-  badge();
+  if(v==="")localStorage.removeItem(LS_BASE);
+  else localStorage.setItem(LS_BASE,v.replace(/\/$/,""));
   if(cur)openTool(cur.id);
-};
+  probe();
+}
+document.getElementById("btnGear").onclick=askBase;
+document.getElementById("warnGear").onclick=askBase;
+document.getElementById("btnReload").onclick=function(){if(cur)openTool(cur.id,false);};
+document.getElementById("btnExt").onclick=function(){if(cur)window.open(toolUrl(cur),"_blank");};
+document.getElementById("warnExt").onclick=function(){if(cur)window.open(toolUrl(cur),"_blank");};
 async function pcAction(path,msg){
   setStatus(msg+"…");
   try{
     var r=await fetch(pcBase()+path,{method:"POST"});
     var j=await r.json().catch(function(){return {};});
     setStatus(j.ok?(msg+": запущено"):(msg+": ошибка "+(j.error||r.status)));
-  }catch(e){setStatus(msg+": ПК-сервер недоступен ("+e+")");}
+    setTimeout(probe,1500);
+  }catch(e){setStatus(msg+": ПК-сервер недоступен");}
 }
 document.getElementById("btnSync").onclick=function(){pcAction("/api/sync_now","Синхронизация");};
 document.getElementById("btnBackup").onclick=function(){pcAction("/api/backup_now","Бэкап");};
-badge();buildTabs();openTool("dash");
+window.addEventListener("hashchange",function(){
+  var id=location.hash.replace("#","");
+  if(id&&id!==(cur&&cur.id))openTool(id);
+});
+buildTabs();
+var startId=location.hash.replace("#","");
+if(!TOOLS.some(function(t){return t.id===startId;}))startId=localStorage.getItem(LS_TOOL)||"dash";
+openTool(startId,false);
+setInterval(probe,30000);
 </script>
 </body>
 </html>
