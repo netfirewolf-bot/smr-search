@@ -14,6 +14,9 @@
 <script src="html5-qrcode.min.js"></script>
 <style>
 .sidecredits{margin-top:12px;padding:10px 12px;font-size:10.5px;color:var(--text-3);line-height:1.5;border-top:1px solid var(--border)}
+.sidetools{margin-top:14px;padding-top:10px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:2px}
+.sidetoolstitle{font-size:10.5px;font-weight:800;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;padding:0 12px 6px}
+a.sideitem{text-decoration:none}
 .prog{margin:8px 0}
 .progtop{font-size:12px;color:var(--text-2);font-weight:600;margin-bottom:4px;font-variant-numeric:tabular-nums}
 .progbar{height:6px;border-radius:6px;background:var(--surface-3);overflow:hidden}
@@ -121,6 +124,9 @@ body.wh-mode .kv{font-size:16px;padding:10px 0}
 <symbol id="i-max" viewBox="0 0 24 24"><path d="M4 9V4h5"/><path d="M20 9V4h-5"/><path d="M4 15v5h5"/><path d="M20 15v5h-5"/></symbol>
 <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></symbol>
 <symbol id="i-dash" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="10" rx="2"/><rect x="13" y="3" width="8" height="6" rx="2"/><rect x="13" y="11" width="8" height="10" rx="2"/><rect x="3" y="15" width="8" height="6" rx="2"/></symbol>
+<symbol id="i-printer" viewBox="0 0 24 24"><path d="M7 8V3h10v5"/><rect x="4" y="8" width="16" height="9" rx="2"/><path d="M7 14h10v7H7z"/></symbol>
+<symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V10"/><path d="M10 20V4"/><path d="M16 20v-8"/><path d="M22 20H2"/></symbol>
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h14v18H6a2 2 0 0 0-2 2z"/><path d="M4 19a2 2 0 0 1 2-2h14"/></symbol>
 </svg>
 
 <div id="loginOverlay" class="hidden">
@@ -140,7 +146,14 @@ body.wh-mode .kv{font-size:16px;padding:10px 0}
   <button class="sideitem active" data-view="search"><svg class="ic"><use href="#i-search"/></svg>Поиск</button>
   <button class="sideitem" data-view="scan"><svg class="ic"><use href="#i-scan"/></svg>Сканер</button>
   <button class="sideitem" data-view="history"><svg class="ic"><use href="#i-history"/></svg>История</button>
-  <a class="sideitem" href="tools.html" style="text-decoration:none"><svg class="ic"><use href="#i-dash"/></svg>Инструменты ПК</a>
+  <div class="sidetools">
+    <div class="sidetoolstitle">Инструменты ПК</div>
+    <a class="sideitem" href="tools.html#dash" title="Состояние системы: синхронизация, очереди, бэкапы, тревоги"><svg class="ic"><use href="#i-dash"/></svg>Дашборд состояния</a>
+    <a class="sideitem" href="tools.html#docs" title="Заявка и перемещение с предпросмотром проводки"><svg class="ic"><use href="#i-file"/></svg>Заявка / перемещение</a>
+    <a class="sideitem" href="tools.html#print" title="Корзина этикеток, размеры, предпросмотр PDF"><svg class="ic"><use href="#i-printer"/></svg>Печать QR-этикеток</a>
+    <a class="sideitem" href="tools.html#report" title="Отчёт инвентаризации с фильтрами и PDF"><svg class="ic"><use href="#i-chart"/></svg>Отчёт инвентаризации</a>
+    <a class="sideitem" href="tools.html#manual" title="Памятка системы онлайн"><svg class="ic"><use href="#i-book"/></svg>Памятка</a>
+  </div>
   <div class="sidecredits">ООО «ПБР» — Предприятие буровых работ<br>Склад СМР<br>Разработчик: Байгулов К. А.</div>
   <div class="sidefoot" id="sideBadge"></div>
 </aside>
@@ -252,7 +265,7 @@ body.wh-mode .kv{font-size:16px;padding:10px 0}
     </div>
     <div id="histList"></div>
     <div class="aboutline">
-      ООО «ПБР» · склад СМР · приложение v22 · разработчик Байгулов К. А.<br>
+      ООО «ПБР» · склад СМР · приложение v23 · разработчик Байгулов К. А.<br>
       <span id="empAbout"></span><br>
       <span class="link" id="tourRestart">Пройти обучение снова</span> ·
       <span class="link" id="empLogout">Выйти (смена сотрудника)</span><br>
@@ -1936,7 +1949,7 @@ var TOUR_STEPS=[
   {view:"scan",sel:"#invSwitch",title:"Инвентаризация и перенос",
    text:"Отсканируйте QR полки — контейнер и полка выберутся сами. Кнопка-коробка в строке переносит позицию в другое место."},
   {view:"history",sel:"#btnHistMine",title:"Личный кабинет",
-   text:"Кнопка «Только мои» показывает ваши сканы. Выйти и сменить сотрудника — ссылкой внизу раздела."}
+   text:"Кнопка «Только мои» показывает ваши сканы. Выйти и сменить сотрудника — ссылкой внизу раздела. На ПК слева есть блок «Инструменты ПК»."}
 ];
 var tourIdx=-1;
 function tourStart(){
@@ -2018,7 +2031,7 @@ function showView(name){
   document.getElementById("navSearch").classList.toggle("active",name==="search");
   document.getElementById("navScan").classList.toggle("active",name==="scan");
   document.getElementById("navHist").classList.toggle("active",name==="history");
-  document.querySelectorAll(".sideitem").forEach(function(b){
+  document.querySelectorAll(".sideitem[data-view]").forEach(function(b){
     b.classList.toggle("active",b.dataset.view===name);
   });
   if(name!=="scan")stopCamera();
@@ -2027,7 +2040,7 @@ function showView(name){
 document.getElementById("navSearch").onclick=function(){showView("search");};
 document.getElementById("navScan").onclick=function(){showView("scan");};
 document.getElementById("navHist").onclick=function(){showView("history");};
-document.querySelectorAll(".sideitem").forEach(function(b){
+document.querySelectorAll(".sideitem[data-view]").forEach(function(b){
   b.onclick=function(){showView(b.dataset.view);};
 });
 
